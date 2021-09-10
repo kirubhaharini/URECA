@@ -9,7 +9,7 @@ import sessionstate
 st.title('ok')
 
 def NCHS(state):
-    st.write('ok')
+    st.write('okok')
     state = _get_state()
     school = state.query_username
     st.write(school)
