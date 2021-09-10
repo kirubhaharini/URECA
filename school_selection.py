@@ -28,12 +28,12 @@ def main():
             webbrowser.open_new_tab(url)
     st.write(state.query_username)
    
-    if state.query_username:
-        NCHS.NCHS(state)
+#     if state.query_username:
+#         NCHS.NCHS(state)
     # df = df.to_html(escape=False)
     # st.write(df, unsafe_allow_html=True)
 
-
+    state.sync()
 
 
 def _get_session():
