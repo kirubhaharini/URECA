@@ -6,6 +6,7 @@ from streamlit.report_thread import get_report_ctx
 from streamlit.server.server import Server
 import sessionstate
 
+st.title('ok')
 def NCHS(state):
     state = _get_state()
     school = state.query_username
