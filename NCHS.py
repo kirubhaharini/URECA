@@ -28,8 +28,8 @@ state = _get_state()
 school = state.query_username
 st.write(school)
 st.title('NCHS Dataset')
-df1 = pd.read_excel("C://Users//Kirubha//Desktop//URECA//NCHS Weather Sensor Data.xlsx")
-df2 = pd.read_excel("C://Users//Kirubha//Desktop//URECA//NCHS Weather Sensor Data_New.xlsx")
+df1 = pd.read_excel("NCHS Weather Sensor Data.xlsx")
+df2 = pd.read_excel("NCHS Weather Sensor Data_New.xlsx")
 df =  pd.concat([df1,df2])
 df = df.reset_index(drop=True)
 
