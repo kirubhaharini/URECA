@@ -7,6 +7,9 @@ from streamlit.server.server import Server
 import sessionstate
 
 st.title('ok')
+state = _get_state()
+school = state.query_username
+st.write(school)
 def NCHS(state):
     state = _get_state()
     school = state.query_username
