@@ -13,7 +13,7 @@ def main():
         # target _blank to open new window
         # extract clickable text to display for your link
         text = link #.split('=')[1]
-        return f'<a target="_blank" href="https://share.streamlit.io/kirubhaharini/ureca/main/{text}"target="_blank">{text}</a>'
+        return f'<a target="_blank" href="https://share.streamlit.io/kirubhaharini/ureca/main/{text}">{text}</a>'
 
     # link is the column with hyperlinks
 
@@ -27,7 +27,7 @@ def main():
             school = df["schools"][i]
             url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' # #+ '/' + school 
             state.query_username = df["schools"][i]
-            webbrowser.open_new_tab(url)
+            webbrowser.open_new(url)
     
     
     from bokeh.models.widgets import Div
