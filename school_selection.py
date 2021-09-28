@@ -13,7 +13,7 @@ def main():
         # target _blank to open new window
         # extract clickable text to display for your link
         text = link #.split('=')[1]
-        return f'<a target="_blank" href="https://share.streamlit.io/kirubhaharini/ureca/main/{text}">{text}</a>'
+        return f'<a target="_blank" href="https://share.streamlit.io/kirubhaharini/ureca/main/{text}"target="_blank">{text}</a>'
 
     # link is the column with hyperlinks
 
