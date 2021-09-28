@@ -24,8 +24,8 @@ def main():
     url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py'
     for i in range(len(df)):
         if st.button(df["schools"][i], key=df["schools"][i]):
-            school = df["schools"][i]
-            url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' # #+ '/' + school 
+            school_ = df["schools"][i]
+            url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' # #+ '/' + school_
             state.query_username = df["schools"][i]
             st.write(url)
             webbrowser.open_new_tab(url)
@@ -43,7 +43,7 @@ def main():
     st.write(state.query_username)
     
     if state.query_username: 
-        school.school(state.query_username)
+        school.school(state)
 
 #     if state.query_username:
 #         NCHS.NCHS(state)
