@@ -31,14 +31,14 @@ def main():
             webbrowser.open_new_tab(url)
     
     
-    from bokeh.models.widgets import Div
+#     from bokeh.models.widgets import Div
 
-    if st.button('Go to Streamlit'):
-        js = "window.open('https://www.streamlit.io/')"  # New tab or window
-        js = "window.location.href = 'https://www.streamlit.io/'"  # Current tab
-        html = '<img src onerror="{}">'.format(js)
-        div = Div(text=html)
-        st.bokeh_chart(div)
+#     if st.button('Go to Streamlit'):
+#         js = "window.open('https://www.streamlit.io/')"  # New tab or window
+#         js = "window.location.href = 'https://www.streamlit.io/'"  # Current tab
+#         html = '<img src onerror="{}">'.format(js)
+#         div = Div(text=html)
+#         st.bokeh_chart(div)
 
     st.write(state.query_username)
     
