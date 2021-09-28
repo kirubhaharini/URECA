@@ -28,6 +28,7 @@ def main():
             school_name = df["schools"][i]
             url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' # #+ '/' + school_name
             state.query_username = df["schools"][i]
+            state.__setattr__(query_username,school_name)
             state.__setitem__(query_username,school_name)
             st.write(url)
             
