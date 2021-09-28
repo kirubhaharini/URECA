@@ -41,7 +41,9 @@ def main():
         st.bokeh_chart(div)
 
     st.write(state.query_username)
-   
+    
+    if state.query_username: 
+        school.school(state)
 
 #     if state.query_username:
 #         NCHS.NCHS(state)
