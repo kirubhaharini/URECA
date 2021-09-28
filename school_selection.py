@@ -21,11 +21,11 @@ def main():
     df = pd.DataFrame(options,columns=['schools'])
     st.write(df)
     #df['schools'] = df['schools'].apply(make_clickable)
-    url = 'https://share.streamlit.io/kirubhaharini/ureca/main/NCHS.py'
+    url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py'
     for i in range(len(df)):
         if st.button(df["schools"][i], key=df["schools"][i]):
             school = df["schools"][i]
-            url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' #+ '/' + school 
+            url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' # #+ '/' + school 
             state.query_username = df["schools"][i]
             webbrowser.open_new_tab(url)
     st.write(state.query_username)
