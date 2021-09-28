@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import NCHS
+import school
 import sessionstate
 from streamlit.report_thread import get_report_ctx
 from streamlit.server.server import Server
@@ -24,6 +24,8 @@ def main():
     url = 'https://share.streamlit.io/kirubhaharini/ureca/main/NCHS.py'
     for i in range(len(df)):
         if st.button(df["schools"][i], key=df["schools"][i]):
+            school = df["schools"][i]
+            url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' #+ '/' + school 
             state.query_username = df["schools"][i]
             webbrowser.open_new_tab(url)
     st.write(state.query_username)
