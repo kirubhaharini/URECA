@@ -2,3 +2,4 @@ streamlit
 plotly
 fsspec
 openpyxl
+streamlit.hashing
