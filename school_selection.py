@@ -43,7 +43,7 @@ def main():
     st.write(state.query_username)
     
     if state.query_username: 
-        school.school(state)
+        school.school(state.query_username)
 
 #     if state.query_username:
 #         NCHS.NCHS(state)
