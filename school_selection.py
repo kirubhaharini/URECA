@@ -28,8 +28,8 @@ def main():
             url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' # #+ '/' + school_
             state.query_username = df["schools"][i]
             st.write(url)
-            browser= webbrowser.get('chrome')
-            browser.open_new_tab(url)
+            
+            webbrowser.open(url,new=2)
     
     
 #     from bokeh.models.widgets import Div
