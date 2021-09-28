@@ -28,7 +28,8 @@ def main():
             url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' # #+ '/' + school_
             state.query_username = df["schools"][i]
             st.write(url)
-            webbrowser.open_new_tab(url)
+            browser= webbrowser.get('chrome')
+            browser.open_new_tab(url)
     
     
 #     from bokeh.models.widgets import Div
@@ -43,10 +44,9 @@ def main():
     st.write(state.query_username)
     
     if state.query_username: 
-        webbrowser.open_new_tab(school.school(state))
+        school.school(state)
 
-#     if state.query_username:
-#         NCHS.NCHS(state)
+
     # df = df.to_html(escape=False)
     # st.write(df, unsafe_allow_html=True)
 
