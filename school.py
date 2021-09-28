@@ -27,7 +27,7 @@ def _get_state(hash_funcs=None):
 state = _get_state()
 school = state.query_username
 st.write(school)
-st.write(st.get_params())
+# st.write(st.get_params())
 st.title('NCHS Dataset')
 df1 = pd.read_excel("NCHS Weather Sensor Data.xlsx")
 df2 = pd.read_excel("NCHS Weather Sensor Data_New.xlsx")
