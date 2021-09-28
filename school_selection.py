@@ -4,6 +4,7 @@ import school
 import sessionstate
 from streamlit.report_thread import get_report_ctx
 from streamlit.server.server import Server
+
 import webbrowser
 
 def main():
@@ -24,12 +25,13 @@ def main():
     url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py'
     for i in range(len(df)):
         if st.button(df["schools"][i], key=df["schools"][i]):
-            school_ = df["schools"][i]
-            url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' # #+ '/' + school_
+            school_name = df["schools"][i]
+            url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' # #+ '/' + school_name
             state.query_username = df["schools"][i]
+            state.__setitem__(query_username,school_name)
             st.write(url)
             
-            webbrowser.open(url,new=2)
+            #webbrowser.open(url,new=2)
     
     
 #     from bokeh.models.widgets import Div
