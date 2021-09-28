@@ -28,8 +28,20 @@ def main():
             url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' # #+ '/' + school 
             state.query_username = df["schools"][i]
             webbrowser.open_new_tab(url)
+    
+    
+    from bokeh.models.widgets import Div
+
+    if st.button('Go to Streamlit'):
+        js = "window.open('https://www.streamlit.io/')"  # New tab or window
+        js = "window.location.href = 'https://www.streamlit.io/'"  # Current tab
+        html = '<img src onerror="{}">'.format(js)
+        div = Div(text=html)
+        st.bokeh_chart(div)
+
     st.write(state.query_username)
    
+
 #     if state.query_username:
 #         NCHS.NCHS(state)
     # df = df.to_html(escape=False)
