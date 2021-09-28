@@ -43,7 +43,7 @@ def main():
     st.write(state.query_username)
     
     if state.query_username: 
-        school.school(state)
+        webbrowser.open_new_tab(school.school(state))
 
 #     if state.query_username:
 #         NCHS.NCHS(state)
