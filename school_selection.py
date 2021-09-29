@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
-import NCHS
+import school
 import sessionstate
 from streamlit.report_thread import get_report_ctx
 from streamlit.server.server import Server
+
 import webbrowser
 
 def main():
@@ -21,15 +22,34 @@ def main():
     df = pd.DataFrame(options,columns=['schools'])
     st.write(df)
     #df['schools'] = df['schools'].apply(make_clickable)
-    url = 'https://share.streamlit.io/kirubhaharini/ureca/main/NCHS.py'
+    url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py'
     for i in range(len(df)):
         if st.button(df["schools"][i], key=df["schools"][i]):
+            school_name = df["schools"][i]
+            url = 'https://share.streamlit.io/kirubhaharini/ureca/main/school.py' # #+ '/' + school_name
             state.query_username = df["schools"][i]
-            webbrowser.open_new_tab(url)
+            state.__setattr__(query_username,school_name)
+            state.__setitem__(query_username,school_name)
+            st.write(url)
+            
+            #webbrowser.open(url,new=2)
+    
+    
+#     from bokeh.models.widgets import Div
+
+#     if st.button('Go to Streamlit'):
+#         js = "window.open('https://www.streamlit.io/')"  # New tab or window
+#         js = "window.location.href = 'https://www.streamlit.io/'"  # Current tab
+#         html = '<img src onerror="{}">'.format(js)
+#         div = Div(text=html)
+#         st.bokeh_chart(div)
+
     st.write(state.query_username)
-   
-#     if state.query_username:
-#         NCHS.NCHS(state)
+    
+    if state.query_username: 
+        school.school(state)
+
+
     # df = df.to_html(escape=False)
     # st.write(df, unsafe_allow_html=True)
 

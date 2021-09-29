@@ -2,3 +2,4 @@ streamlit==0.75.0
 plotly
 fsspec
 openpyxl
+bokeh
