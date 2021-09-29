@@ -12,7 +12,7 @@ class _SessionState:
             "is_rerun": False,
             "session": session,
         }
-
+ 
     def __call__(self, **kwargs):
         """Initialize state data once."""
         for item, value in kwargs.items():
