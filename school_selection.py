@@ -55,7 +55,7 @@ def main():
     # df = df.to_html(escape=False)
     # st.write(df, unsafe_allow_html=True)
 
-    state.sync()
+    #state.sync()
 
 
 # def _get_session():

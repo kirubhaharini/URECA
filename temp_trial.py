@@ -50,7 +50,7 @@ def main():
     
 
     # Mandatory to avoid rollbacks with widgets, must be called at the end of your app
-    state.sync()
+    #state.sync()
 
 # def _get_session():
 #     session_id = get_report_ctx().session_id
