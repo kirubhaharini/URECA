@@ -10,6 +10,9 @@ state.school = 'SchoolSelection' #default url query param for selection
 
 if 'school' in state.query_params.keys(): #if url is changed directly
     state.school = state.query_params["school"][0]
+else:
+    state.set_school = st.experimental_set_query_params(school=state.school)
+
 
 school_list = ['Select','NCHS','DSS']
 state.ph = st.empty()
