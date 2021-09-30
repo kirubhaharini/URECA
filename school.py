@@ -26,9 +26,7 @@ from streamlit.server.server import Server
     
 def school(state):
     
-   # state = _get_state()
-    #state = st.session_state
-
+    
     # #back button
     # state.back = st.button('Select School')
     # if state.back:
@@ -38,9 +36,7 @@ def school(state):
     #     return #temp_trial.main()
    # if not state.activated: return #temp_trial.main() #go back to app.py
 
-    #state.school = state.activated
-   ## st.write(state.school)
-    # st.write(st.get_params())
+  
     st.title(state.school+' Dataset')
 
     if state.school == 'NCHS':
@@ -129,11 +125,3 @@ def school(state):
 
 
     
-    
-   # state.sync()
-
-
-
-# if __name__ == "__main__":
-#     main()
-
