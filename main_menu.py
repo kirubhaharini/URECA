@@ -23,9 +23,10 @@ if state.school == 'SchoolSelection':  #if mainmenu page
         state.school = state.dropdownMenu
         state.ph.empty()
         school.school(state)
+        st.experimental_set_query_params(school=state.school)
 
 else:  #if url changed directly - (state.school!='SchoolSelection')
     school.school(state)
  
 
-st.experimental_set_query_params(school=state.school)
+
