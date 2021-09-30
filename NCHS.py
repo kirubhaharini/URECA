@@ -1,19 +1,26 @@
 import streamlit as st
 import pandas as pd
 import datetime
+from datetime import date
 import plotly.express as px
+import numpy as np
+from windrose import WindroseAxes
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+
+'''
+Dashboard for Nan Chiau High School
+Data from June to Aug 2021
+'''
 
 def NCHS(state):
 
-    #for NCHS: 
-
+    #merge dfs
     df1 = pd.read_excel("NCHS Weather Sensor Data.xlsx")
     df2 = pd.read_excel("NCHS Weather Sensor Data_New.xlsx")
     df =  pd.concat([df1,df2])
     df = df.reset_index(drop=True)
 
-
-    df['School'] = 'NCHS'
 
     df['hour'] = ''
     for row in range(len(df)):
@@ -22,9 +29,42 @@ def NCHS(state):
     df['Date'] = [datetime.datetime.date(d) for d in df['Time']]
 
     # st.write(df)
-    placeholder = st.empty()
 
-    fig = px.bar(df, x='hour', y='Temperature (°C)', color='Device ID')
+    #########average per day - for climograph################
+    # #AVG by day
+    # avg_df = df.groupby('Date',as_index=False).mean()
+    # for row in range(len(avg_df)):
+    #     avg_df.loc[row,'Day'] = avg_df.loc[row,'Date'].strftime('%d %B %Y')
+    #     avg_df.loc[row,'Month'] = avg_df.loc[row,'Date'].strftime('%B')
+    
+#####################################################################
+    
+    #for presenting stats
+    st.markdown(f"""<h2 style='text-align: center; color: darkgoldenrod;'>{'Summary'}</h2>""", unsafe_allow_html=True)
+    col1,col2,col3 = st.beta_columns([2,2,2])
+    col4,col5,col6 = st.beta_columns([2,2,2])
+    with col1:
+        st.write('Avg Rainfall (mm)')
+    with col2:
+        st.write('Avg Temp (°C)')
+    with col3:
+        st.write('Avg Humidity (%)')
+
+
+    #expander for data
+    state.expander = st.beta_expander(label='Show data')
+    with state.expander:
+        placeholder2 = st.empty()
+    #for climograph
+    placeholder = st.empty()
+    #for temp graph
+    placeholder1 = st.empty() #for graph - hourly temp
+    #windrose
+    st.write('windrose is not for this data - need to change later')
+    temp_wind_df = px.data.wind()
+    fig = px.bar_polar(temp_wind_df, r="frequency", theta="direction",
+                            color="strength", template="plotly_dark",
+                        color_discrete_sequence= px.colors.sequential.Plasma_r)
     st.plotly_chart(fig)
 
     #date
@@ -43,7 +83,6 @@ def NCHS(state):
     min_hum = min(df['Humidity (%)'])
     max_hum = max(df['Humidity (%)'])
     state.humidity = st.sidebar.slider('Humidity',max_hum,min_hum,(min_hum,max_hum),step=0.1)
-
 
 
 
@@ -82,7 +121,63 @@ def NCHS(state):
                 if min_temp<=df.loc[row,'Temperature (°C)']<=max_temp:#temperature
                     if min_hum<=df.loc[row,'Humidity (%)']<=max_hum:#humidity
                         filtered_df = filtered_df.append(df.iloc[row,:])
+  
+
+    
+    placeholder2.table(filtered_df)
 
 
-    placeholder.table(filtered_df)
+    if len(filtered_df)!=0:
+        
+        fig = px.bar(filtered_df, x='hour', y='Temperature (°C)', color='Device ID')
+        placeholder1.plotly_chart(fig)
 
+
+        ########climograph#######################
+        avg_df = filtered_df.groupby('Date',as_index=False).mean()
+        for row in range(len(avg_df)):
+            avg_df.loc[row,'Day'] = avg_df.loc[row,'Date'].strftime('%d %B %Y')
+            avg_df.loc[row,'Month'] = avg_df.loc[row,'Date'].strftime('%B')
+        
+        fig_combi = make_subplots(specs=[[{"secondary_y": True}]])#this a one cell subplot
+        fig_combi.update_layout(title="Climograph",
+                        template="plotly_white",title_x=0.5,legend=dict(orientation='h'))
+
+        trace1 = go.Bar(x=avg_df['Date'], y=avg_df['Rainfall (mm)'], opacity=0.5,name='Rainfall (mm)',marker_color ='#1f77b4')
+
+        trace2p = go.Scatter(x=avg_df['Date'], y=avg_df['Temperature (°C)'],name='Temperature ((°C))',mode='lines+markers',line=dict(color='#e377c2', width=2))
+
+        #The first trace is referenced to the default xaxis, yaxis (ie. xaxis='x1', yaxis='y1')
+        fig_combi.add_trace(trace1, secondary_y=False)
+
+        #The second trace is referenced to xaxis='x1'(i.e. 'x1' is common for the two traces) 
+        #and yaxis='y2' (the right side yaxis)
+
+        fig_combi.add_trace(trace2p, secondary_y=True)
+
+        fig_combi.update_yaxes(#left yaxis
+                        title= 'mm',showgrid= False, secondary_y=False)
+        fig_combi.update_yaxes(#right yaxis
+                        showgrid= True, 
+                        title= '°C',
+                        secondary_y=True)
+        ######################################################################
+        placeholder.plotly_chart(fig_combi)
+
+
+
+ ##NOTE: MIGHT HAVE ERRORS if eg rainfall in filtered df is '-' or NaN etc
+        with col4: 
+            st.write(round(filtered_df['Rainfall (mm)'].mean(),2))
+        with col5:
+            st.write(round(filtered_df['Temperature (°C)'].mean(),2))
+        with col6:
+            st.write(round(filtered_df['Humidity (%)'].mean(),2))
+   
+    else:
+        with col4:
+            st.write('NA')
+        with col5:
+            st.write('NA')
+        with col6:
+            st.write('NA')

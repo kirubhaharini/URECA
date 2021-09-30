@@ -3,7 +3,10 @@ import streamlit as st
    
 def school(state):
   
-    st.title(state.school + ' Dataset')
+    title = state.school #+ ' Dataset'
+    
+    st.markdown(f"""<h1 style='text-align: left; color: #d62728;'>{title}</h1>""", unsafe_allow_html=True)
+
 
     if state.school == 'NCHS':
         NCHS.NCHS(state)
