@@ -22,5 +22,4 @@ elif (state.dropdownMenu != 'Select'):
     state.school = state.dropdownMenu
     state.ph.empty()
     school.school(state)
-    
-state.set_school = st.experimental_set_query_params(school=state.school)
+    state.set_school = st.experimental_set_query_params(school=state.school)
