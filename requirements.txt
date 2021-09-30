@@ -3,3 +3,4 @@ plotly
 fsspec
 openpyxl
 bokeh
+windrose
