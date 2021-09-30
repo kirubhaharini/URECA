@@ -28,13 +28,14 @@ def school(state):
     
     state = _get_state()
     
+    '''
     #back button
     state.back = st.button('Back')
     if state.back:
         state.page=False
         return
     if not state.page: return #go back to app.py
-
+'''
     school = state.page
     st.write(school)
     # st.write(st.get_params())
