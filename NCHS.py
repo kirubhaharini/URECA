@@ -38,7 +38,7 @@ def NCHS(state):
 #####################################################################
     
     #for presenting stats
-    st.markdown(f"""<h2 style='text-align: center; color: darkgoldenrod;'>{'Summary'}</h2>""", unsafe_allow_html=True)
+    st.markdown(f"""<h3 style='text-align: center; color: darkgoldenrod;'>{'Summary'}</h3>""", unsafe_allow_html=True)
     col1,col2,col3 = st.columns([2,2,2])
     col4,col5,col6 = st.columns([2,2,2])
     with col1:
