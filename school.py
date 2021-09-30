@@ -7,6 +7,8 @@ def school(state):
     
     st.markdown(f"""<h1 style='text-align: left; color: black;'>{title}</h1>""", unsafe_allow_html=True)
 
+    #leave a gap
+    st.write(' ')
 
     if state.school == 'NCHS':
         NCHS.NCHS(state)
