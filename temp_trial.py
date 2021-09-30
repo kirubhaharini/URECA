@@ -19,7 +19,7 @@ def main():
     
 
     state.page = st.selectbox('school',['Select','NCHS','DHS'],index = 0)
-    st.experimental_set_query_params(school='Select')
+    st.experimental_set_query_params(school=state.page)
     # Display the selected page with the session state
     st.title("Pages")
     #options = tuple(pages.keys())
