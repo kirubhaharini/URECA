@@ -5,7 +5,7 @@ def school(state):
   
     title = state.school #+ ' Dataset'
     
-    st.markdown(f"""<h2 style='text-align: left; color: black;'>{title}</h2>""", unsafe_allow_html=True)
+    st.markdown(f"""<h1 style='text-align: left; color: black;'>{title}</h1>""", unsafe_allow_html=True)
 
     #leave a gap
     st.write(' ')
