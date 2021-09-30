@@ -14,13 +14,13 @@ def main():
     #         "NCHS": school.school,
     #         "DHS" : school.school
     #     }
-    state.ph = st.sidebar.empty()
-    state.ph1 = st.sidebar.empty()
+    #state.ph = st.sidebar.empty()
+    #state.ph1 = st.sidebar.empty()
     
 
-    state.page = state.ph1.selectbox('school',['Select','NCHS','DHS'],index=0)
+    state.page = state.st.selectbox('school',['Select','NCHS','DHS'],index=0)
     # Display the selected page with the session state
-    state.ph.title("Pages")
+    state.st.title("Pages")
     #options = tuple(pages.keys())
     #state.page = st.sidebar.radio("Select your page", options, options.index(state.page) if state.page else 0)
    # pages[state.page](state)
@@ -29,14 +29,14 @@ def main():
         state.query_username = state.page
         if state.query_username: #in "posts page" if click on influencer, will show "home"
             #school.school(state)
-            state.ph.empty()
-            state.ph1.empty()
+           # state.ph.empty()
+            #state.ph1.empty()
             st.experimental_set_query_params(school=state.page)
             school.school(state)
 
         # Mandatory to avoid rollbacks with widgets, must be called at the end of your app
     else: st.experimental_set_query_params(school='Select')
-    
+
     state.sync()
 
 def _get_session():
