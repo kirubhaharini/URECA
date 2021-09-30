@@ -6,7 +6,7 @@ school_list = ['Select','NCHS','DSS'] #list of schools
 state.ph = st.empty() #placeholder
 
 state.query_params = st.experimental_get_query_params()
-st.write(state.query_params)
+# st.write(state.query_params)
 
 if 'school' not in state: #initilize
     state.school = 'SchoolSelection' #default url query param for selection
