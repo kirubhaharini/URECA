@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import datetime
-import school_selection
+import school_selection,temp_trial
 import plotly.express as px
 from streamlit.report_thread import get_report_ctx
 from streamlit.hashing import _CodeHasher
@@ -26,22 +26,24 @@ def _get_state(hash_funcs=None):
     
 def school(state):
     
-    state = _get_state()
-    
-    '''
-    #back button
-    state.back = st.button('Back')
-    if state.back:
-        state.page=False
-        return
-    if not state.page: return #go back to app.py
-'''
-    school = state.page
-    st.write(school)
-    # st.write(st.get_params())
-    st.title(school+' Dataset')
+   # state = _get_state()
+    #state = st.session_state
 
-    if school == 'NCHS':
+    # #back button
+    # state.back = st.button('Select School')
+    # if state.back:
+    #     state.check = st.write('okok')
+    #     state.dropdownMenu='Select' #reset
+    #     state.check2 = st.write('ok')
+    #     return #temp_trial.main()
+   # if not state.activated: return #temp_trial.main() #go back to app.py
+
+    #state.school = state.activated
+   ## st.write(state.school)
+    # st.write(st.get_params())
+    st.title(state.school+' Dataset')
+
+    if state.school == 'NCHS':
 
         #for NCHS: 
 
@@ -71,7 +73,7 @@ def school(state):
 
         #devices
         devices = df['Device ID'].unique().tolist()
-        state.devices_filter = st.sidebar.multiselect('Device(s)',devices)
+        state.devices_filter = st.sidebar.multiselect('Device(s)',devices,key='devices')
 
         #temperature
         min_temp = min(df['Temperature (°C)'])
@@ -128,7 +130,7 @@ def school(state):
 
     
     
-    state.sync()
+   # state.sync()
 
 
 

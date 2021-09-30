@@ -17,25 +17,38 @@ def main():
     #state.ph = st.sidebar.empty()
     #state.ph1 = st.sidebar.empty()
     
+    school_list = ['Select','NCHS','DHS']
+    state.query_params = st.experimental_get_query_params()
+    #state.default = (school_list.index(state.query_params["school"][0])) if "school" in state.query_params else 0
+    #st.write(state.default)
+    state.page = st.selectbox('school',school_list,index = 0,key='page')
 
-    state.page = st.selectbox('school',['Select','NCHS','DHS'],index = 0)
-    #state.urlquery = st.experimental_set_query_params(school=state.page)
     # Display the selected page with the session state
-    st.title("Pages")
+    #st.title("Pages")
     #options = tuple(pages.keys())
     #state.page = st.sidebar.radio("Select your page", options, options.index(state.page) if state.page else 0)
    # pages[state.page](state)
-    
-    if state.page != 'Select':
-        
-           # state.ph.empty()
-            #state.ph1.empty()
-        st.experimental_set_query_params(school=state.page)
+
+    st.experimental_set_query_params(school=state.page)
+
+    if state.page != school_list[0]:
+        state.activated = state.page
         school.school(state)
+    
+    # if state.page != 'Select':
+    #     state.activated = state.page
+    # else: state.activated = False
 
-        # Mandatory to avoid rollbacks with widgets, must be called at the end of your app
+    # if state.activated:
+    #     st.experimental_set_query_params(school=state.activated)
+    #     school.school(state)
+        
+    #        # state.ph.empty()
+    #         #state.ph1.empty()
+    
     
 
+    # Mandatory to avoid rollbacks with widgets, must be called at the end of your app
     state.sync()
 
 def _get_session():
