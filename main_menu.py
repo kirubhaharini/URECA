@@ -10,11 +10,11 @@ st.write(state.query_params)
 
 if 'school' not in state: #initilize
     state.school = 'SchoolSelection' #default url query param for selection
-    st.experimental_set_query_params(school='SelectSchool') #####
+    #st.experimental_set_query_params(school='SelectSchool') #####
 
 if 'school' in state.query_params.keys(): #if url is changed directly
-    if state.query_params["school"][0] != 'SelectSchool':
-        state.school = state.query_params["school"][0]
+    #if state.query_params["school"][0] != 'SelectSchool':
+    state.school = state.query_params["school"][0]
     st.write(state.school)
 # else:
 
