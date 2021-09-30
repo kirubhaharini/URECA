@@ -19,7 +19,7 @@ def main():
     
 
     state.page = st.selectbox('school',['Select','NCHS','DHS'],index = 0)
-    state.urlquery = st.experimental_set_query_params(school=state.page)
+    #state.urlquery = st.experimental_set_query_params(school=state.page)
     # Display the selected page with the session state
     st.title("Pages")
     #options = tuple(pages.keys())
@@ -30,7 +30,7 @@ def main():
         
            # state.ph.empty()
             #state.ph1.empty()
-        state.urlquery = st.experimental_set_query_params(school=state.page)
+        st.experimental_set_query_params(school=state.page)
         school.school(state)
 
         # Mandatory to avoid rollbacks with widgets, must be called at the end of your app
