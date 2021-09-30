@@ -6,12 +6,15 @@ state = st.session_state
 state.query_params = st.experimental_get_query_params()
 st.write(state.query_params)
 
+if 'school' not in state: #initilize
+    state.school = 'SchoolSelection' #default url query param for selection
+
+
 if 'school' in state.query_params.keys(): #if url is changed directly
     state.school = state.query_params["school"][0]
     st.write(state.school)
-else:
-    state.school = 'SchoolSelection' #default url query param for selection
-
+# else:
+    
 #     st.experimental_set_query_params(school=state.school)
 
 
