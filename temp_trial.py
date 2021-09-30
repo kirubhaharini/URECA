@@ -33,7 +33,7 @@ def main():
         school.school(state)
 
         # Mandatory to avoid rollbacks with widgets, must be called at the end of your app
-    #else: st.experimental_set_query_params(school='Select')
+    else: st.experimental_set_query_params(school='Select')
 
     state.sync()
 
