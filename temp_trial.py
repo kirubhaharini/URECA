@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit.util import index_
 #import nchs,dhs #to display the other pages
 import school
 import sessionstate
