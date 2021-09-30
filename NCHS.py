@@ -1,9 +1,7 @@
 import streamlit as st
 import pandas as pd
 import datetime
-from datetime import date
 import plotly.express as px
-import numpy as np
 from windrose import WindroseAxes
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -41,8 +39,8 @@ def NCHS(state):
     
     #for presenting stats
     st.markdown(f"""<h2 style='text-align: center; color: darkgoldenrod;'>{'Summary'}</h2>""", unsafe_allow_html=True)
-    col1,col2,col3 = st.beta_columns([2,2,2])
-    col4,col5,col6 = st.beta_columns([2,2,2])
+    col1,col2,col3 = st.columns([2,2,2])
+    col4,col5,col6 = st.columns([2,2,2])
     with col1:
         st.write('Avg Rainfall (mm)')
     with col2:
@@ -52,7 +50,7 @@ def NCHS(state):
 
 
     #expander for data
-    state.expander = st.beta_expander(label='Show data')
+    state.expander = st.expander(label='Show data')
     with state.expander:
         placeholder2 = st.empty()
     #for climograph
