@@ -18,7 +18,8 @@ def main():
     #state.ph1 = st.sidebar.empty()
     
 
-    state.page = st.selectbox('school',['Select','NCHS','DHS'])
+    state.page = st.selectbox('school',['Select','NCHS','DHS'],index = 0)
+    st.experimental_set_query_params(school='Select')
     # Display the selected page with the session state
     st.title("Pages")
     #options = tuple(pages.keys())
@@ -33,7 +34,7 @@ def main():
         school.school(state)
 
         # Mandatory to avoid rollbacks with widgets, must be called at the end of your app
-    else: st.experimental_set_query_params(school='Select')
+    
 
     state.sync()
 
