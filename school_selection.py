@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import school
 import sessionstate
+from streamlit.hashing import _CodeHasher
 from streamlit.report_thread import get_report_ctx
 from streamlit.server.server import Server
 
