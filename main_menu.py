@@ -4,14 +4,14 @@ import school
 state = st.session_state 
 
 state.query_params = st.experimental_get_query_params()
-# st.write(state.query_params)
+st.write(state.query_params)
 
 state.school = 'SchoolSelection' #default url query param for selection
 
 if 'school' in state.query_params.keys(): #if url is changed directly
     state.school = state.query_params["school"][0]
-else:
-    st.experimental_set_query_params(school=state.school)
+# else:
+#     st.experimental_set_query_params(school=state.school)
 
 
 school_list = ['Select','NCHS','DSS']
@@ -25,4 +25,5 @@ elif (state.dropdownMenu != 'Select'):
     state.school = state.dropdownMenu
     state.ph.empty()
     school.school(state)
-    st.experimental_set_query_params(school=state.school)
+
+st.experimental_set_query_params(school=state.school)
