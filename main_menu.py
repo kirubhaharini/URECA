@@ -15,12 +15,12 @@ school_list = ['Select','NCHS','DSS']
 state.ph = st.empty()
 state.dropdownMenu = state.ph.selectbox('school',school_list,index = 0,key='page')
 
-if (state.dropdownMenu != 'Select'):
+if (state.school!='SchoolSelection'):
+    state.ph.empty()
+    school.school(state)
+elif (state.dropdownMenu != 'Select'):
     state.school = state.dropdownMenu
     state.ph.empty()
     school.school(state)
-elif (state.school!='SchoolSelection'):
-    state.ph.empty()
-    school.school(state)
-
+    
 state.set_school = st.experimental_set_query_params(school=state.school)
