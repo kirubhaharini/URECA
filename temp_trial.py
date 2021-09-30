@@ -2,7 +2,7 @@ import streamlit as st
 #import nchs,dhs #to display the other pages
 import school
 import sessionstate
-from streamlit.hashing import _CodeHasher
+# from streamlit.hashing import _CodeHasher
 from streamlit.report_thread import get_report_ctx
 from streamlit.server.server import Server
 

@@ -4,7 +4,7 @@ import datetime
 import school_selection,temp_trial
 import plotly.express as px
 from streamlit.report_thread import get_report_ctx
-from streamlit.hashing import _CodeHasher
+# from streamlit.hashing import _CodeHasher
 from streamlit.server.server import Server
 import sessionstate
 
