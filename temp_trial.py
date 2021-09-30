@@ -20,7 +20,7 @@ def main():
 
     state.page = st.selectbox('school',['Select','NCHS','DHS'],index=0)
     # Display the selected page with the session state
-    state.st.title("Pages")
+    st.title("Pages")
     #options = tuple(pages.keys())
     #state.page = st.sidebar.radio("Select your page", options, options.index(state.page) if state.page else 0)
    # pages[state.page](state)
