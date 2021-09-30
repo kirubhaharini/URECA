@@ -16,7 +16,7 @@ def main():
     #     }
     state.ph = st.sidebar.empty()
     state.ph1 = st.sidebar.empty()
-    st.experimental_set_query_params(school='Select')
+    
 
     state.page = state.ph1.selectbox('school',['Select','NCHS','DHS'],index=0)
     # Display the selected page with the session state
@@ -35,7 +35,9 @@ def main():
             school.school(state)
 
         # Mandatory to avoid rollbacks with widgets, must be called at the end of your app
-        state.sync()
+    else: st.experimental_set_query_params(school='Select')
+    
+    state.sync()
 
 def _get_session():
     session_id = get_report_ctx().session_id
