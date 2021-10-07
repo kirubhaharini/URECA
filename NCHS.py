@@ -130,8 +130,7 @@ def NCHS(state):
         tempp = filtered_df[['hour','Temperature (°C)']]
         tempp.set_index('hour',inplace=True)
         temp = tempp.groupby('hour').mean()
-        fig = px.line(temp, y='Temperature (°C)')
-        st.write('Hourly Temperature')
+        fig = px.line(temp, y='Temperature (°C)',title='Hourly Temperature')
         placeholder1.plotly_chart(fig)
 
 
