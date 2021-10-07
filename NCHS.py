@@ -126,8 +126,12 @@ def NCHS(state):
 
 
     if len(filtered_df)!=0:
-        
-        fig = px.bar(filtered_df, x='hour', y='Temperature (°C)', color='Device ID')
+
+        tempp = filtered_df[['hour','Temperature (°C)']]
+        tempp.set_index('hour',inplace=True)
+        temp = tempp.groupby('hour').mean()
+        fig = px.line(temp, y='Temperature (°C)')
+        st.write('Hourly Temperature')
         placeholder1.plotly_chart(fig)
 
 
