@@ -14,9 +14,10 @@ Data from June to Aug 2021
 def NCHS(state):
 
     #merge dfs
-    df1 = pd.read_excel("NCHS Weather Sensor Data.xlsx")
-    df2 = pd.read_excel("NCHS Weather Sensor Data_New.xlsx")
-    df =  pd.concat([df1,df2])
+    df1 = pd.read_excel("NCHS Weather Sensor Data.xlsx",'2021-06')
+    df2 = pd.read_excel("NCHS Weather Sensor Data.xlsx",'2021-07')
+    df3 = pd.read_excel("NCHS Weather Sensor Data_New.xlsx")
+    df =  pd.concat([df1,df2,df3])
     df = df.reset_index(drop=True)
 
 
