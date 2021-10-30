@@ -61,6 +61,7 @@ def NCHS(state):
     #windrose
     st.write('windrose is not for this data - need to change later')
     temp_wind_df = px.data.wind()
+    st.write(temp_wind_df)
     fig = px.bar_polar(temp_wind_df, r="frequency", theta="direction",
                             color="strength",
                         color_discrete_sequence= px.colors.sequential.Plasma_r)
