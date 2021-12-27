@@ -23,6 +23,9 @@ def NCHS(state):
 
     df['hour'] = ''
     for row in range(len(df)):
+        #changing nchsmote1 to mote1
+        if df.loc[row,'Device ID'] == 'nchsmote1':
+            df.loc[row,'Device ID'] = 'mote1'
         time = (df.loc[row,'Time'])
         df.loc[row,'hour'] = time.hour
     df['Date'] = [datetime.datetime.date(d) for d in df['Time']]
