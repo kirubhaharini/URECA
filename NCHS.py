@@ -19,9 +19,12 @@ def NCHS(state):
     df3 = pd.read_excel("NCHS Weather Sensor Data_New.xlsx")
     df =  pd.concat([df1,df2,df3])
     df = df.reset_index(drop=True)
+    wind_data = pd.read_excel("wind_direction_NCHS.xlsx")
+    # st.write(wind_data)
 
 
     df['hour'] = ''
+    df['direction of wind'] = ''
     for row in range(len(df)):
         #changing nchsmote1 to mote1
         if 'nchs' in df.loc[row,'Device ID']:
@@ -29,6 +32,16 @@ def NCHS(state):
 
         time = (df.loc[row,'Time'])
         df.loc[row,'hour'] = time.hour
+
+        #adding wind dir
+        for row1 in range(len(wind_data)):
+            if df.loc[row,'Device ID'] == wind_data.loc[row1,'mote']:
+                if df.loc[row,'Wind Dir (Degrees)'] == wind_data.loc[row1,'wind direction']:
+                    df.loc[row,'direction of wind'] = wind_data.loc[row1,'direction']
+                    break
+            else:
+                df.loc[row,'direction of wind'] = 'NA'
+
     df['Date'] = [datetime.datetime.date(d) for d in df['Time']]
 
     # st.write(df)
@@ -62,15 +75,10 @@ def NCHS(state):
     placeholder = st.empty()
     #for temp graph
     placeholder1 = st.empty() #for graph - hourly temp
-    #windrose
-    st.write('windrose is not for this data - need to change later')
-    temp_wind_df = px.data.wind()
-    st.write(temp_wind_df)
-    fig = px.bar_polar(temp_wind_df, r="frequency", theta="direction",
-                            color="strength",
-                        color_discrete_sequence= px.colors.sequential.Plasma_r)
-    st.plotly_chart(fig)
 
+    #windrose
+    placeholder_windrose = st.empty()
+    
     #date
     state.date_slider = st.sidebar.date_input("Date(s)",[min(df['Date']),max(df['Date'])],min_value=min(df['Date']),max_value=max(df['Date']))
 
@@ -173,7 +181,32 @@ def NCHS(state):
         ######################################################################
         placeholder.plotly_chart(fig_combi)
 
+        #show windrose:
+        wind_df = filtered_df[filtered_df['direction of wind']!='NA']
+        freq = wind_df[['direction of wind','Wind Speed (m/s)']].value_counts()
+        freq = freq.reset_index() 
+        freq = freq.rename({0: "frequency"},axis=1)
+        # st.write(freq)
+        #test
+        # count = 0
+        # wind_df=wind_df.reset_index()
+        # for row in range(len(wind_df)):
+        #     # st.write(row)
+        #     # st.write(wind_df.loc[row,'direction of wind'])
+        #     if wind_df.loc[row,'direction of wind'] == 'ESE':
+        #         # st.write('ese')
+        #         if wind_df.loc[row,'Wind Speed (m/s)'] == 0:
+        #             count+=1
+        # st.write(count)
+        
+        windrose = px.bar_polar(freq, r='frequency', 
+                            theta="direction of wind",
+                            color="Wind Speed (m/s)",
+                        color_discrete_sequence= px.colors.sequential.Plasma_r)
+        windrose.update_layout(title="Windrose",
+                        template="plotly_white",title_x=0.45,legend=dict(orientation='h'))
 
+        placeholder_windrose.plotly_chart(windrose)
 
  ##NOTE: MIGHT HAVE ERRORS if eg rainfall in filtered df is '-' or NaN etc
         with col4: 
