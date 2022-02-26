@@ -162,6 +162,7 @@ def NCHS(state):
 
     if len(filtered_df)!=0:
 
+        ####################### hourly temp graph #######################
         tempp = filtered_df[['hour','Temperature (°C)']]
         tempp.set_index('hour',inplace=True)
         temp = tempp.groupby('hour').mean()
@@ -171,7 +172,7 @@ def NCHS(state):
         placeholder1.plotly_chart(temp_fig)
 
 
-        ########climograph#######################
+        ####################### climograph #######################
         avg_df = filtered_df.groupby('Date',as_index=False).mean()
         for row in range(len(avg_df)):
             avg_df.loc[row,'Day'] = avg_df.loc[row,'Date'].strftime('%d %B %Y')
@@ -199,10 +200,9 @@ def NCHS(state):
                         showgrid= True, 
                         title= '°C',
                         secondary_y=True)
-        ######################################################################
         placeholder.plotly_chart(climograph)
 
-        #show windrose:
+        ####################### windrose #######################
         wind_df = filtered_df[filtered_df['direction of wind']!='NA']
         freq = wind_df[['direction of wind','Wind Speed (m/s)']].value_counts()
         freq = freq.reset_index() 
@@ -218,14 +218,12 @@ def NCHS(state):
         placeholder_windrose.plotly_chart(windrose)
 
 
-        #co2 levels
-        # st.write(avg_df)
-        
+        ####################### co2 levels #######################        
         co2 = px.line(avg_df,x=avg_df['Date'], y=avg_df['CO2 (ppm)'],title='Average CO2 Level per Day')
         co2.update_layout(title_x=0.5)
         placeholder_co2.plotly_chart(co2)
 
-        #light 
+        ####################### visible light and UV #######################
         sites = filtered_df['Device ID'].unique()
         
         bubble_size = []
@@ -281,7 +279,7 @@ def NCHS(state):
         #     plot_bgcolor='rgb(243, 243, 243)',
         )
         placeholder_light.plotly_chart(fig)
-
+        ################################################################
 
 
 
