@@ -1,4 +1,5 @@
 streamlit==0.89.0
+streamlit_toggle
 plotly
 fsspec
 openpyxl

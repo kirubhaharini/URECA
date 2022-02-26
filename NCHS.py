@@ -56,6 +56,18 @@ def NCHS(state):
     
 #####################################################################
     
+    choice = st.radio("Choice your page: ",('Actual','Predictions'))
+    st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
+    from streamlit_toggle import st_toggleswitch
+
+    awesomeness_enabled = st_toggleswitch("Enable awesomeness")
+    if awesomeness_enabled:
+        st.write("Awesomeness has been enabled!")
+
+    # color = st.select_slider(
+    #  'Select a color of the rainbow',
+    #  options=['red', 'orange'],)
+
     #for presenting stats
     st.markdown(f"""<h3 style='text-align: left; color: darkgoldenrod;'>{'Summary'}</h3>""", unsafe_allow_html=True)
     col1,col2,col3 = st.columns([2,2,2])
