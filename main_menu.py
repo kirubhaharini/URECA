@@ -1,5 +1,6 @@
 import streamlit as st
 import school
+st.set_page_config(layout="wide")
 
 state = st.session_state 
 school_list = ['Select','NCHS','DSS'] #list of schools

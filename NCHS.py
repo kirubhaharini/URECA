@@ -5,6 +5,7 @@ import plotly.express as px
 from windrose import WindroseAxes
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+import math
 
 '''
 Dashboard for Nan Chiau High School
@@ -71,14 +72,34 @@ def NCHS(state):
     state.expander = st.expander(label='Show data')
     with state.expander:
         placeholder2 = st.empty()
+    
     #for climograph
-    placeholder = st.empty()
+    a, climo_col, b = st.columns([3,6,3])
+
+    with climo_col:
+        placeholder = st.empty()
+    with a,b:
+        st.write(' ')  #just for formatting
+
+
+    temp_col,wind_col = st.columns(2)
+    co2_col,light_col = st.columns(2)
     #for temp graph
-    placeholder1 = st.empty() #for graph - hourly temp
+    with temp_col:
+        placeholder1 = st.empty() #for graph - hourly temp
 
     #windrose
-    placeholder_windrose = st.empty()
+    with wind_col:
+        placeholder_windrose = st.empty()
     
+    #co2
+    with co2_col:
+        placeholder_co2 = st.empty()
+
+    #light
+    with light_col:
+        placeholder_light = st.empty()
+
     #date
     state.date_slider = st.sidebar.date_input("Date(s)",[min(df['Date']),max(df['Date'])],min_value=min(df['Date']),max_value=max(df['Date']))
 
@@ -144,10 +165,10 @@ def NCHS(state):
         tempp = filtered_df[['hour','Temperature (°C)']]
         tempp.set_index('hour',inplace=True)
         temp = tempp.groupby('hour').mean()
-        fig = px.line(temp, y='Temperature (°C)')
-        fig.update_layout(title="Hourly Temperature",
+        temp_fig = px.line(temp, y='Temperature (°C)')
+        temp_fig.update_layout(title="Hourly Temperature",
                         template="plotly_white",title_x=0.5,legend=dict(orientation='h'))
-        placeholder1.plotly_chart(fig)
+        placeholder1.plotly_chart(temp_fig)
 
 
         ########climograph#######################
@@ -156,8 +177,8 @@ def NCHS(state):
             avg_df.loc[row,'Day'] = avg_df.loc[row,'Date'].strftime('%d %B %Y')
             avg_df.loc[row,'Month'] = avg_df.loc[row,'Date'].strftime('%B')
         
-        fig_combi = make_subplots(specs=[[{"secondary_y": True}]])#this a one cell subplot
-        fig_combi.update_layout(title="Climograph",
+        climograph = make_subplots(specs=[[{"secondary_y": True}]])#this a one cell subplot
+        climograph.update_layout(title="Climograph",
                         template="plotly_white",title_x=0.5,legend=dict(orientation='h'))
 
         trace1 = go.Bar(x=avg_df['Date'], y=avg_df['Rainfall (mm)'], opacity=0.5,name='Rainfall (mm)',marker_color ='#1f77b4')
@@ -165,21 +186,21 @@ def NCHS(state):
         trace2p = go.Scatter(x=avg_df['Date'], y=avg_df['Temperature (°C)'],name='Temperature ((°C))',mode='lines+markers',line=dict(color='#e377c2', width=2))
 
         #The first trace is referenced to the default xaxis, yaxis (ie. xaxis='x1', yaxis='y1')
-        fig_combi.add_trace(trace1, secondary_y=False)
+        climograph.add_trace(trace1, secondary_y=False)
 
         #The second trace is referenced to xaxis='x1'(i.e. 'x1' is common for the two traces) 
         #and yaxis='y2' (the right side yaxis)
 
-        fig_combi.add_trace(trace2p, secondary_y=True)
+        climograph.add_trace(trace2p, secondary_y=True)
 
-        fig_combi.update_yaxes(#left yaxis
+        climograph.update_yaxes(#left yaxis
                         title= 'mm',showgrid= False, secondary_y=False)
-        fig_combi.update_yaxes(#right yaxis
+        climograph.update_yaxes(#right yaxis
                         showgrid= True, 
                         title= '°C',
                         secondary_y=True)
         ######################################################################
-        placeholder.plotly_chart(fig_combi)
+        placeholder.plotly_chart(climograph)
 
         #show windrose:
         wind_df = filtered_df[filtered_df['direction of wind']!='NA']
@@ -198,13 +219,74 @@ def NCHS(state):
 
 
         #co2 levels
-        st.write(avg_df)
-        co2 = px.line(avg_df,x=avg_df['Date'], y=avg_df['CO2 (ppm)'],title='Average CO2 Level')
+        # st.write(avg_df)
+        
+        co2 = px.line(avg_df,x=avg_df['Date'], y=avg_df['CO2 (ppm)'],title='Average CO2 Level per Day')
         co2.update_layout(title_x=0.5)
-        st.plotly_chart(co2)
+        placeholder_co2.plotly_chart(co2)
 
         #light 
+        sites = filtered_df['Device ID'].unique()
         
+        bubble_size = []
+        hover_text = []
+
+        for index, row in filtered_df.iterrows():
+            hover_text.append(( #'Date: {date}<br>'+
+                            'Visible Light: {light}<br>'+
+                            'UV Index: {UV}<br>').format(#date=row['Date'],
+                                                    light=row['Visible Light (lm)'],
+                                                    UV=row['UV (UV Index)'] ))
+        #     print(row)
+            if row['Visible Light (lm)']>0:
+                bubble_size.append(math.sqrt(row['Visible Light (lm)']))
+            else:
+                bubble_size.append(0)
+
+        filtered_df['text'] = hover_text
+        filtered_df['size'] = bubble_size
+        sizeref = 2.*max(filtered_df['size'])/(100**2)
+
+
+        # Create figure
+        fig = go.Figure()
+
+        for device in sites:
+            new_df = filtered_df[filtered_df['Device ID']==device]
+            avg_df = new_df.groupby(['hour','Device ID'],as_index=False).mean()
+            fig.add_trace(go.Scatter(
+                x=new_df['hour'], y=new_df['Visible Light (lm)'],
+                name=device,text=new_df['text'],
+                marker_size=new_df['size'],
+                ))
+
+        # Tune marker appearance and layout
+        fig.update_traces(mode='markers', marker=dict(sizemode='area',
+                                                    sizeref=sizeref, line_width=2))
+
+        fig.update_layout(title="Average Visible Light level by Hour of Day",
+                        template="plotly_white",title_x=0.5)
+        fig.update_layout(
+            xaxis=dict(
+                title='Hour of day',
+        #         gridcolor='white',
+                gridwidth=2,
+            ),
+            yaxis=dict(
+                title='Visible Light (lm)',
+        #         gridcolor='white',
+                gridwidth=2,
+            ),
+        #     paper_bgcolor='rgb(243, 243, 243)',
+        #     plot_bgcolor='rgb(243, 243, 243)',
+        )
+        placeholder_light.plotly_chart(fig)
+
+
+
+
+
+
 
 
  ##NOTE: MIGHT HAVE ERRORS if eg rainfall in filtered df is '-' or NaN etc
