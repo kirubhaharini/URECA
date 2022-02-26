@@ -4,3 +4,4 @@ fsspec
 openpyxl
 bokeh
 windrose
+streamlit_toggle
