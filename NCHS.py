@@ -157,7 +157,7 @@ def NCHS(state):
   
 
     
-    placeholder2.table(filtered_df)
+    placeholder2.dataframe(filtered_df)
 
 
     if len(filtered_df)!=0:
