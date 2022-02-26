@@ -186,18 +186,6 @@ def NCHS(state):
         freq = wind_df[['direction of wind','Wind Speed (m/s)']].value_counts()
         freq = freq.reset_index() 
         freq = freq.rename({0: "frequency"},axis=1)
-        # st.write(freq)
-        #test
-        # count = 0
-        # wind_df=wind_df.reset_index()
-        # for row in range(len(wind_df)):
-        #     # st.write(row)
-        #     # st.write(wind_df.loc[row,'direction of wind'])
-        #     if wind_df.loc[row,'direction of wind'] == 'ESE':
-        #         # st.write('ese')
-        #         if wind_df.loc[row,'Wind Speed (m/s)'] == 0:
-        #             count+=1
-        # st.write(count)
         
         windrose = px.bar_polar(freq, r='frequency', 
                             theta="direction of wind",
@@ -207,6 +195,17 @@ def NCHS(state):
                         template="plotly_white",title_x=0.45,legend=dict(orientation='h'))
 
         placeholder_windrose.plotly_chart(windrose)
+
+
+        #co2 levels
+        st.write(avg_df)
+        co2 = px.line(avg_df,x=avg_df['Date'], y=avg_df['CO2 (ppm)'],title='Average CO2 Level')
+        co2.update_layout(title_x=0.5)
+        st.plotly_chart(co2)
+
+        #light 
+        
+
 
  ##NOTE: MIGHT HAVE ERRORS if eg rainfall in filtered df is '-' or NaN etc
         with col4: 
