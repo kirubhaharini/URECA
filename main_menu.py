@@ -1,6 +1,6 @@
 import streamlit as st
 import school
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide",initial_sidebar_state="collapsed")
 
 state = st.session_state 
 school_list = ['Select','NCHS','DSS'] #list of schools
@@ -29,6 +29,3 @@ if state.school == 'SchoolSelection':  #if mainmenu page
 
 else:  #if url changed directly - (state.school!='SchoolSelection')
     school.school(state)
- 
-
-
