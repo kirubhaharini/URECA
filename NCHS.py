@@ -58,11 +58,11 @@ def NCHS(state):
     
     choice = st.radio("Choice your page: ",('Actual','Predictions'))
     st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
-    from streamlit_toggle import st_toggleswitch
+    # from streamlit_toggle import st_toggleswitch
 
-    awesomeness_enabled = st_toggleswitch("Enable awesomeness")
-    if awesomeness_enabled:
-        st.write("Awesomeness has been enabled!")
+    # awesomeness_enabled = st_toggleswitch("Enable awesomeness")
+    # if awesomeness_enabled:
+    #     st.write("Awesomeness has been enabled!")
 
     # color = st.select_slider(
     #  'Select a color of the rainbow',
