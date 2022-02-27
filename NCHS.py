@@ -6,6 +6,8 @@ from windrose import WindroseAxes
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import math
+# import hydralit_components as hc
+# import time
 
 '''
 Dashboard for Nan Chiau High School
@@ -13,7 +15,7 @@ Data from June to Aug 2021
 '''
 
 def NCHS(state):
-
+    
     #merge dfs
     df1 = pd.read_excel("NCHS Weather Sensor Data.xlsx",'2021-06')
     df2 = pd.read_excel("NCHS Weather Sensor Data.xlsx",'2021-07')
@@ -32,8 +34,8 @@ def NCHS(state):
         if 'nchs' in df.loc[row,'Device ID']:
             df.loc[row,'Device ID'] = df.loc[row,'Device ID'].replace('nchs','')
 
-        time = (df.loc[row,'Time'])
-        df.loc[row,'hour'] = time.hour
+        time1 = (df.loc[row,'Time'])
+        df.loc[row,'hour'] = time1.hour
 
         #adding wind dir
         for row1 in range(len(wind_data)):
@@ -47,6 +49,9 @@ def NCHS(state):
     df['Date'] = [datetime.datetime.date(d) for d in df['Time']]
 
     # st.write(df)
+    # loader_delay=8
+    # with hc.HyLoader('Loading ...',hc.Loaders.standard_loaders,index=[2,2,2,2]):
+    #     time.sleep(loader_delay)
 
     #########average per day - for climograph################
     # #AVG by day
@@ -123,14 +128,27 @@ def NCHS(state):
     #temperature
     min_temp = min(df['Temperature (°C)'])
     max_temp = max(df['Temperature (°C)'])
-    state.temperature = st.sidebar.slider('Temperature',min_temp,max_temp,(min_temp,max_temp),step=0.1)
+    state.temperature = st.sidebar.slider('Temperature (°C)',min_temp,max_temp,(min_temp,max_temp),step=0.1)
 
     #humidity
     min_hum = min(df['Humidity (%)'])
     max_hum = max(df['Humidity (%)'])
-    state.humidity = st.sidebar.slider('Humidity',max_hum,min_hum,(min_hum,max_hum),step=0.1)
+    state.humidity = st.sidebar.slider('Humidity (%)',max_hum,min_hum,(min_hum,max_hum),step=0.1)
 
+     #light
+    min_light = min(df['Visible Light (lm)'])
+    max_light = max(df['Visible Light (lm)'])
+    state.light = st.sidebar.slider('Visible Light (lm)',max_light,min_light,(min_light,max_light),step=0.1)
 
+     #co2
+    min_co2 = min(df['CO2 (ppm)'])
+    max_co2 = max(df['CO2 (ppm)'])
+    state.co2 = st.sidebar.slider('CO2 (ppm)',max_co2,min_co2,(min_co2,max_co2),step=0.1)
+
+     #rainfall
+    min_rainfall = min(df['Rainfall (mm)'])
+    max_rainfall = max(df['Rainfall (mm)'])
+    state.rainfall = st.sidebar.slider('Rainfall (mm)',max_rainfall,min_rainfall,(min_rainfall,max_rainfall),step=0.1)
 
 
     #apply filter
@@ -157,6 +175,18 @@ def NCHS(state):
     if state.humidity:
         min_hum = state.humidity[0]
         max_hum = state.humidity[1]
+    
+    if state.light:
+        min_light= state.light[0]
+        max_light = state.light[1]
+
+    if state.co2:
+        min_co2 = state.co2[0]
+        max_co2 = state.co2[1]
+
+    if state.rainfall:
+        min_rainfall = state.rainfall[0]
+        max_rainfall = state.rainfall[1]
 
 
 
@@ -166,7 +196,10 @@ def NCHS(state):
             if df.loc[row,'Device ID'] in state.devices_filter: #device
                 if min_temp<=df.loc[row,'Temperature (°C)']<=max_temp:#temperature
                     if min_hum<=df.loc[row,'Humidity (%)']<=max_hum:#humidity
-                        filtered_df = filtered_df.append(df.iloc[row,:])
+                        if min_light<=df.loc[row,'Visible Light (lm)']<=max_light:#light
+                            if min_co2<=df.loc[row,'CO2 (ppm)']<=max_co2:#co2
+                                if min_rainfall<=df.loc[row,'Rainfall (mm)']<=max_rainfall:#rainfall
+                                    filtered_df = filtered_df.append(df.iloc[row,:])
   
 
     
@@ -181,7 +214,7 @@ def NCHS(state):
             st.write(round(filtered_df['Temperature (°C)'].mean(),2))
         with col6:
             st.write(round(filtered_df['Humidity (%)'].mean(),2))
-            
+
         if choice == 'Actual data':
             ####################### hourly temp graph #######################
             tempp = filtered_df[['hour','Temperature (°C)']]
