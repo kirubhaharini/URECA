@@ -1,4 +1,4 @@
-import NCHS,DSS #ADD SCHOOLS HERE
+import NCHS,DSS,SGS,YSS #ADD SCHOOLS HERE
 import streamlit as st
    
 def school(state):
@@ -14,7 +14,10 @@ def school(state):
         NCHS.NCHS(state)
     elif state.school == 'DSS':
         DSS.DSS(state)
-
+    elif state.school == 'SGS':
+        SGS.SGS(state)
+    elif state.school == 'YSS':
+        YSS.YSS(state)
 
 
     # #back button

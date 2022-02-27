@@ -279,11 +279,11 @@ def NCHS(state):
 
             ####################### visible light and UV #######################
             sites = filtered_df['Device ID'].unique()
-            
+            temp_df = filtered_df.groupby(['hour','Device ID'],as_index=False).mean()
             bubble_size = []
             hover_text = []
 
-            for index, row in filtered_df.iterrows():
+            for index, row in temp_df.iterrows():
                 hover_text.append(( #'Date: {date}<br>'+
                                 'Visible Light: {light}<br>'+
                                 'UV Index: {UV}<br>').format(#date=row['Date'],
@@ -295,17 +295,17 @@ def NCHS(state):
                 else:
                     bubble_size.append(0)
 
-            filtered_df['text'] = hover_text
-            filtered_df['size'] = bubble_size
-            sizeref = 2.*max(filtered_df['size'])/(100**2)
+            temp_df['text'] = hover_text
+            temp_df['size'] = bubble_size
+            sizeref = 2.*max(temp_df['size'])/(100**2)
 
 
             # Create figure
             fig = go.Figure()
 
             for device in sites:
-                new_df = filtered_df[filtered_df['Device ID']==device]
-                avg_df = new_df.groupby(['hour','Device ID'],as_index=False).mean()
+                new_df = temp_df[temp_df['Device ID']==device]
+                # avg_df = new_df.groupby(['hour','Device ID'],as_index=False).mean()
                 fig.add_trace(go.Scatter(
                     x=new_df['hour'], y=new_df['Visible Light (lm)'],
                     name=device,text=new_df['text'],
