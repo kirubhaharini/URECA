@@ -3,6 +3,7 @@ import school
 st.set_page_config(layout="wide",initial_sidebar_state="collapsed")
 
 state = st.session_state 
+
 school_list = ['Select','NCHS','DSS','SGS','YSS'] #list of schools
 state.ph = st.empty() #placeholder
 

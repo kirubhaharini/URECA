@@ -6,6 +6,9 @@ from windrose import WindroseAxes
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import math
+import pickle
+from st_btn_select import st_btn_select
+
 # import hydralit_components as hc
 # import time
 
@@ -16,50 +19,9 @@ Data from June to Aug 2021
 
 def NCHS(state):
     
-    #merge dfs
-    df1 = pd.read_excel("NCHS Weather Sensor Data.xlsx",'2021-06')
-    df2 = pd.read_excel("NCHS Weather Sensor Data.xlsx",'2021-07')
-    df3 = pd.read_excel("NCHS Weather Sensor Data_New.xlsx")
-    df =  pd.concat([df1,df2,df3])
-    df = df.reset_index(drop=True)
-    wind_data = pd.read_excel("wind_direction_NCHS.xlsx")
-    # st.write(wind_data)
-    df['Temperature (°C)'] = df['Temperature (°C)'].replace(0,df['Temperature (°C)'].median())
+    #use final merged dataset instead
+    df = pd.read_excel('FINAL_PROCESSED_NCHS.xlsx')
 
-
-    df['hour'] = ''
-    df['direction of wind'] = ''
-    for row in range(len(df)):
-        #changing nchsmote1 to mote1
-        if 'nchs' in df.loc[row,'Device ID']:
-            df.loc[row,'Device ID'] = df.loc[row,'Device ID'].replace('nchs','')
-
-        time1 = (df.loc[row,'Time'])
-        df.loc[row,'hour'] = time1.hour
-
-        #adding wind dir
-        for row1 in range(len(wind_data)):
-            if df.loc[row,'Device ID'] == wind_data.loc[row1,'mote']:
-                if df.loc[row,'Wind Dir (Degrees)'] == wind_data.loc[row1,'wind direction']:
-                    df.loc[row,'direction of wind'] = wind_data.loc[row1,'direction']
-                    break
-            else:
-                df.loc[row,'direction of wind'] = 'NA'
-
-    df['Date'] = [datetime.datetime.date(d) for d in df['Time']]
-
-    # st.write(df)
-    # loader_delay=8
-    # with hc.HyLoader('Loading ...',hc.Loaders.standard_loaders,index=[2,2,2,2]):
-    #     time.sleep(loader_delay)
-
-    #########average per day - for climograph################
-    # #AVG by day
-    # avg_df = df.groupby('Date',as_index=False).mean()
-    # for row in range(len(avg_df)):
-    #     avg_df.loc[row,'Day'] = avg_df.loc[row,'Date'].strftime('%d %B %Y')
-    #     avg_df.loc[row,'Month'] = avg_df.loc[row,'Date'].strftime('%B')
-    
 #####################################################################
 
     #for presenting stats
@@ -85,8 +47,11 @@ def NCHS(state):
         st.write(' ')
     choice = ''
     with c:
-        choice = st.radio("View:",('Actual data','Predictions'))
-        st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
+        st.write('Select View:')
+        choice = st_btn_select(('Actual Data', 'Predictions'))#,  nav=True)
+
+        # choice = st.radio("View:",('Actual data','Predictions'))
+        # st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
 
     # st.write(choice)
 
@@ -136,8 +101,8 @@ def NCHS(state):
     state.humidity = st.sidebar.slider('Humidity (%)',max_hum,min_hum,(min_hum,max_hum),step=0.1)
 
      #light
-    min_light = min(df['Visible Light (lm)'])
-    max_light = max(df['Visible Light (lm)'])
+    min_light = float(min(df['Visible Light (lm)']))
+    max_light = float(max(df['Visible Light (lm)']))
     state.light = st.sidebar.slider('Visible Light (lm)',max_light,min_light,(min_light,max_light),step=0.1)
 
      #co2
@@ -215,7 +180,7 @@ def NCHS(state):
         with col6:
             st.write(round(filtered_df['Humidity (%)'].mean(),2))
 
-        if choice == 'Actual data':
+        if choice == 'Actual Data':
             ####################### hourly temp graph #######################
             tempp = filtered_df[['hour','Temperature (°C)']]
             tempp.set_index('hour',inplace=True)
@@ -347,11 +312,126 @@ def NCHS(state):
             ###################################################################
 
         elif choice == 'Predictions':
-            st.write('hi')
+            
+            df_to_use = pd.read_excel('final NCHS (after outlier removal).xlsx')
+
+            july_df = df_to_use[df_to_use['Time'].dt.strftime('%m')=='07'] 
+            # ^ no max since can predict any date after max date in july data:)
+            
+            pred1, pred2 = st.columns(2)
+            with pred1:
+                ###################  temp predictions  ################
+
+                new_temp_column = july_df[['Time', 'new temp']] 
+                new_temp_column.dropna(inplace=True)
+                new_temp_column.reset_index(inplace = True)
+                new_temp_column.drop('index',axis=1,inplace=True)
+                # new_column.columns
+                new_temp_column.columns = ['ds', 'y'] 
+
+                #load model
+                with open('prophet_temp_model_NCHS.pkl','rb') as f:
+                    temp_model = pickle.load(f)
+                
+                #prediction
+                temp_future = temp_model.make_future_dataframe(periods=1000,freq='33.4min')
+                temp_forecast=temp_model.predict(temp_future)
+                # import plotly.graph_objects as go
+
+                temp_pred = go.Figure()
+                temp_pred.add_trace(go.Scatter(
+                    x=temp_forecast.ds,
+                    y=temp_forecast.yhat,
+                    name = '<b>Forecast</b>', # Style name/legend entry with html tags
+                ))
+                temp_pred.add_trace(go.Scatter(
+                    x=new_temp_column.ds,
+                    y=new_temp_column.y,
+                    name='Actual',
+                ))
+                temp_pred.update_layout(title='Actual vs Predicted Temperature (°C)',title_x = 0.5)
+                
+                st.plotly_chart(temp_pred)
+            with pred2:
+                ###################  humidity predictions  ################
+                new_hum_column = july_df[['Time', 'new humidity']] 
+                new_hum_column.dropna(inplace=True)
+                new_hum_column.reset_index(inplace = True)
+                new_hum_column.drop('index',axis=1,inplace=True)
+                new_hum_column.columns = ['ds', 'y'] 
+                with open('prophet_humidity_model_NCHS.pkl','rb') as f:
+                    hum_model = pickle.load(f)
+
+                hum_future= hum_model.make_future_dataframe(periods=1000,freq='33.4min')
+                hum_forecast=hum_model.predict(hum_future)
+                hum_pred = go.Figure()
+                hum_pred.add_trace(go.Scatter(
+                    x=hum_forecast.ds,
+                    y=hum_forecast.yhat,
+                    name = '<b>Forecast</b>', # Style name/legend entry with html tags
+                ))
+                hum_pred.add_trace(go.Scatter(
+                    x=new_hum_column.ds,
+                    y=new_hum_column.y,
+                    name='Actual'
+                ))
+                hum_pred.update_layout(title='Actual vs Predicted Humidity (%)',title_x = 0.5)
+                
+                st.plotly_chart(hum_pred)
+            
+            ###################  rainfall predictions  ################
+            new_rainfall_column = july_df[['Time', 'Rainfall (mm)']] 
+            new_rainfall_column.dropna(inplace=True)
+            new_rainfall_column.reset_index(inplace = True)
+            new_rainfall_column.drop('index',axis=1,inplace=True)
+            new_rainfall_column.columns = ['ds', 'y'] 
+
+            #load model
+            with open('prophet_rainfall_model_NCHS.pkl','rb') as f:
+                rainfall_model = pickle.load(f)
+
+            rainfall_future= rainfall_model.make_future_dataframe(periods=1000,freq='33.4min')
+            rainfall_forecast=rainfall_model.predict(rainfall_future)
+            rainfall_pred = go.Figure()
+
+            rainfall_pred.add_trace(go.Histogram(
+                x=rainfall_forecast.ds,
+                y=rainfall_forecast.yhat,
+                name = '<b>Forecast</b>', # Style name/legend entry with html tags
+            ))
+            rainfall_pred.add_trace(go.Histogram(
+                x=new_rainfall_column.ds,
+                y=new_rainfall_column.y,
+                name='Actual',
+            ))
+
+            rainfall_pred.update_layout(title='Actual vs Predicted Rainfall (cm)',title_x = 0.5)
+
+            st.plotly_chart(rainfall_pred)
 
 
+            #choose date and predict
+            state.pred_date_slider = st.date_input("Select date to predict",max(july_df['Date']),min_value=max(july_df['Date']))
 
-   
+            p_date_df = pd.DataFrame({'ds':[state.pred_date_slider]})
+            
+            predicted=temp_model.predict(p_date_df)
+            pred_temp = round(predicted.yhat[0],2)
+
+            predicted=hum_model.predict(p_date_df)
+            pred_hum = round(predicted.yhat[0],2)
+
+            predicted=rainfall_model.predict(p_date_df)
+            pred_rainfall = round(predicted.yhat[0],2)
+
+
+            st.write('Weather Forecast on '+str(state.pred_date_slider)+' :')
+            st.write('Temperature: '+str(pred_temp)+' °C')
+            st.write('Humidity: '+str(pred_hum)+' %')
+            st.write('Rainfall: '+str(pred_rainfall)+' cm')
+
+            st.write('\n[Note: Prediction is only based on July data]')
+            
     else:
         with col4:
             st.write('NA')
