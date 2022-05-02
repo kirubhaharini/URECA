@@ -50,11 +50,6 @@ def NCHS(state):
         st.write('Select View:')
         choice = st_btn_select(('Actual Data', 'Predictions'))#,  nav=True)
 
-        # choice = st.radio("View:",('Actual data','Predictions'))
-        # st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
-
-    # st.write(choice)
-
 
     #for climograph
     a, climo_col, b = st.columns([3,6,3])
@@ -313,9 +308,7 @@ def NCHS(state):
 
         elif choice == 'Predictions':
             
-            df_to_use = pd.read_excel('final NCHS (after outlier removal).xlsx')
-
-            july_df = df_to_use[df_to_use['Time'].dt.strftime('%m')=='07'] 
+            july_df = df[df['Time'].dt.strftime('%m')=='07'] 
             # ^ no max since can predict any date after max date in july data:)
             
             pred1, pred2 = st.columns(2)
