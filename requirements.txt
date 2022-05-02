@@ -5,4 +5,5 @@ openpyxl
 bokeh
 windrose
 st_btn_select
+pystan
 fbprophet
