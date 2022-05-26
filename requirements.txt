@@ -8,6 +8,6 @@ bokeh
 windrose
 st_btn_select
 pystan==2.19.1.1
-
+fbprophet
 
 
