@@ -7,10 +7,11 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import math
 from st_btn_select import st_btn_select
-from fbprophet import Prophet
-from fbprophet.plot import plot_plotly
+# from fbprophet import Prophet
+# from fbprophet.plot import plot_plotly
+# import pmdarima as pm #autoarima
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import pickle
 
 # import hydralit_components as hc
