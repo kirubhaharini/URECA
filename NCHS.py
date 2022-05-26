@@ -311,8 +311,12 @@ def NCHS(state):
             ###################################################################
 
         elif choice == 'Predictions':
-            
-            july_df = df[df['Time'].dt.strftime('%m')=='07'] 
+
+            ##### using resampled data from July
+            resampled_df = pd.read_excel('resampled NCHS.xlsx')            
+            july_df = resampled_df[resampled_df['Time'].dt.strftime('%m')=='07'] 
+
+
             # ^ no max since can predict any date after max date in july data:)
             
             pred1, pred2 = st.columns(2)
@@ -331,7 +335,7 @@ def NCHS(state):
                     temp_model = pickle.load(f)
                 
                 #prediction
-                temp_future = temp_model.make_future_dataframe(periods=1000,freq='33.4min')
+                temp_future = temp_model.make_future_dataframe(periods=500,freq='2H')
                 temp_forecast=temp_model.predict(temp_future)
                 # import plotly.graph_objects as go
 
@@ -359,7 +363,7 @@ def NCHS(state):
                 with open('prophet_humidity_model_NCHS.pkl','rb') as f:
                     hum_model = pickle.load(f)
 
-                hum_future= hum_model.make_future_dataframe(periods=1000,freq='33.4min')
+                hum_future= hum_model.make_future_dataframe(periods=500,freq='2H')
                 hum_forecast=hum_model.predict(hum_future)
                 hum_pred = go.Figure()
                 hum_pred.add_trace(go.Scatter(
@@ -377,28 +381,35 @@ def NCHS(state):
                 st.plotly_chart(hum_pred)
             
             ###################  rainfall predictions  ################
-            new_rainfall_column = july_df[['Time', 'Rainfall (mm)']] 
-            new_rainfall_column.dropna(inplace=True)
-            new_rainfall_column.reset_index(inplace = True)
-            new_rainfall_column.drop('index',axis=1,inplace=True)
-            new_rainfall_column.columns = ['ds', 'y'] 
+            new_rainfall_df = july_df[['Time','new rainfall']]
+            new_rainfall_df.set_index('Time',inplace=True)
+            # Create Training and Test - 80:20
+            train = new_rainfall_df['new rainfall'][:298]
+            test = new_rainfall_df['new rainfall'][298:] 
 
             #load model
-            with open('prophet_rainfall_model_NCHS.pkl','rb') as f:
+            with open('ARIMA_rainfall_model_NCHS.pkl','rb') as f:
                 rainfall_model = pickle.load(f)
 
-            rainfall_future= rainfall_model.make_future_dataframe(periods=1000,freq='33.4min')
-            rainfall_forecast=rainfall_model.predict(rainfall_future)
+            n_periods = 500
+            date_to_forecast_from = (train.index[-1] + datetime.timedelta(days=1)).date()
+            m  = pd.date_range(date_to_forecast_from,periods=n_periods,freq='2H')
+
+            fc = rainfall_model.predict(n_periods=n_periods)
+            index_of_fc = m
+            # make series for plotting purpose
+            fc_series = pd.Series(fc, index=index_of_fc)
+
             rainfall_pred = go.Figure()
 
             rainfall_pred.add_trace(go.Histogram(
-                x=rainfall_forecast.ds,
-                y=rainfall_forecast.yhat,
+                x=fc_series.index,
+                y=fc_series,
                 name = '<b>Forecast</b>', # Style name/legend entry with html tags
             ))
             rainfall_pred.add_trace(go.Histogram(
-                x=new_rainfall_column.ds,
-                y=new_rainfall_column.y,
+                x=new_rainfall_df.index,
+                y=new_rainfall_df,
                 name='Actual',
             ))
 
@@ -409,7 +420,7 @@ def NCHS(state):
 
             #choose date and predict
             state.pred_date_slider = st.date_input("Select date to predict",max(july_df['Date']),min_value=max(july_df['Date']))
-
+            st.write(type(state.pred_date_slider))
             p_date_df = pd.DataFrame({'ds':[state.pred_date_slider]})
             
             predicted=temp_model.predict(p_date_df)
@@ -418,6 +429,7 @@ def NCHS(state):
             predicted=hum_model.predict(p_date_df)
             pred_hum = round(predicted.yhat[0],2)
 
+            #p_date_df['y'] = None
             predicted=rainfall_model.predict(p_date_df)
             pred_rainfall = round(predicted.yhat[0],2)
 

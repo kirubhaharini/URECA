@@ -16,27 +16,8 @@ Data from Nov 2019 to Apr 2021
 def DSS(state):
 
     ############## preprocessing ##############
-    df = pd.read_excel('Dunearn_Weather Readings.xlsx')
+    df = pd.read_excel('FINAL_PROCESSED_DSS.xlsx')
 
-    df['date'] = [datetime.datetime.date(d) for d in df['timestamp']]
-    df.drop(['Unnamed: 10','Unnamed: 11','id'], inplace=True, axis=1)
-    cols = ['Wind Speed (km/h)','Wind Direction','Rainfall (cm)']
-    for col in cols:
-        df[col] = df[col].replace('-',0)
-        df[col] = df[col].replace('???',0)
-
-    #checking and removing negative values 
-    df = df[df['Temperature (℃)']>=0]
-    df = df[df['Relative Humidity (%)']>=0]
-    df = df[df['Rainfall (cm)']>=0]
-    df = df.reset_index()
-
-    df['hour'] = ''
-    for row in range(len(df)):
-
-        time = (df.loc[row,'timestamp'])
-        df.loc[row,'hour'] = time.hour
-    
     df1 = df.groupby(['moteID','date'],as_index=False).mean()
     
     df1['Temperature (℃)'] = df1['Temperature (℃)'].replace(0,df1['Temperature (℃)'].median())
