@@ -1,12 +1,12 @@
-streamlit==0.89.0
+streamlit
+numpy
 plotly
 fsspec
 openpyxl
 bokeh
 windrose
 st_btn_select
-numpy
 pystan==2.19.1.1
 fbprophet
-statsmodels
+
 
