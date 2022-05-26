@@ -13,6 +13,8 @@ import pmdarima as pm #autoarima
 import numpy as np
 # import matplotlib.pyplot as plt
 import pickle
+import joblib
+import statsmodels
 
 # import hydralit_components as hc
 # import time
@@ -324,7 +326,7 @@ def NCHS(state):
             with pred1:
                 ###################  temp predictions  ################
 
-                new_temp_column = july_df[['Time', 'new temp']] 
+                new_temp_column = july_df[['Time', 'Temperature (°C)']] 
                 new_temp_column.dropna(inplace=True)
                 new_temp_column.reset_index(inplace = True)
                 new_temp_column.drop('index',axis=1,inplace=True)
@@ -356,7 +358,7 @@ def NCHS(state):
                 st.plotly_chart(temp_pred)
             with pred2:
                 ###################  humidity predictions  ################
-                new_hum_column = july_df[['Time', 'new humidity']] 
+                new_hum_column = july_df[['Time', 'Humidity (%)']] 
                 new_hum_column.dropna(inplace=True)
                 new_hum_column.reset_index(inplace = True)
                 new_hum_column.drop('index',axis=1,inplace=True)
@@ -382,15 +384,30 @@ def NCHS(state):
                 st.plotly_chart(hum_pred)
             
             ###################  rainfall predictions  ################
-            new_rainfall_df = july_df[['Time','new rainfall']]
+            new_rainfall_df = july_df[['Time','Rainfall (mm)']]
             new_rainfall_df.set_index('Time',inplace=True)
             # Create Training and Test - 80:20
-            train = new_rainfall_df['new rainfall'][:298]
-            test = new_rainfall_df['new rainfall'][298:] 
+            train = new_rainfall_df['Rainfall (mm)'][:298]
+            test = new_rainfall_df['Rainfall (mm)'][298:] 
 
-            #load model
-            with open('ARIMA_rainfall_model_NCHS.pkl','rb') as f:
-                rainfall_model = pickle.load(f)
+            # #load model
+            # with open('ARIMA_rainfall_model_NCHS.pkl','rb') as f:
+            #     rainfall_model = joblib.load('test arima.pkl')#pickle.load(f)
+            
+            #autoarima
+            rainfall_model = pm.auto_arima(train, start_p=1, start_q=1,
+                                test='adf',       # use adftest to find optimal 'd'
+                                max_p=3, max_q=3, # maximum p and q
+                                m=1,              # frequency of series
+                                d=None,           # let model determine 'd'
+                                seasonal=False,   # No Seasonality
+                                start_P=0, 
+                                D=0, 
+                                trace=True,
+                                error_action='ignore',  
+                                suppress_warnings=True, 
+                                stepwise=True)
+
 
             n_periods = 500
             date_to_forecast_from = (train.index[-1] + datetime.timedelta(days=1)).date()
@@ -410,18 +427,17 @@ def NCHS(state):
             ))
             rainfall_pred.add_trace(go.Histogram(
                 x=new_rainfall_df.index,
-                y=new_rainfall_df,
+                y=new_rainfall_df['Rainfall (mm)'],
                 name='Actual',
             ))
 
-            rainfall_pred.update_layout(title='Actual vs Predicted Rainfall (cm)',title_x = 0.5)
+            rainfall_pred.update_layout(title='Actual vs Predicted Rainfall (mm)',title_x = 0.5)
 
             st.plotly_chart(rainfall_pred)
 
 
             #choose date and predict
             state.pred_date_slider = st.date_input("Select date to predict",max(july_df['Date']),min_value=max(july_df['Date']))
-            st.write(type(state.pred_date_slider))
             p_date_df = pd.DataFrame({'ds':[state.pred_date_slider]})
             
             predicted=temp_model.predict(p_date_df)
@@ -431,14 +447,16 @@ def NCHS(state):
             pred_hum = round(predicted.yhat[0],2)
 
             #p_date_df['y'] = None
-            predicted=rainfall_model.predict(p_date_df)
-            pred_rainfall = round(predicted.yhat[0],2)
+            n = (state.pred_date_slider - train.index[-1].date()).days
+            fc = rainfall_model.predict(n_periods=n)
+            predicted=fc[-1]
+            pred_rainfall = round(predicted,2)
 
 
-            st.write('Weather Forecast on '+str(state.pred_date_slider)+' :')
+            st.write('Weather Forecast for '+str(state.pred_date_slider)+' :')
             st.write('Temperature: '+str(pred_temp)+' °C')
             st.write('Humidity: '+str(pred_hum)+' %')
-            st.write('Rainfall: '+str(pred_rainfall)+' cm')
+            st.write('Rainfall: '+str(pred_rainfall)+' mm')
 
             st.write('\n[Note: Prediction is only based on July data]')
             
