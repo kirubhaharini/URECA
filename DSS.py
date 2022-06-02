@@ -7,6 +7,10 @@ from windrose import WindroseAxes
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import math
+from st_btn_select import st_btn_select
+import pickle
+from numpy import asarray
+
 
 '''
 Dashboard for Dunearn Secondary School
@@ -51,8 +55,8 @@ def DSS(state):
         st.write(' ')
     choice = ''
     with c:
-        choice = st.radio("View:",('Actual data','Predictions'))
-        st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
+        st.write('Select View:')
+        choice = st_btn_select(('Actual Data', 'Predictions'))
 
     # st.write(choice)
 
@@ -172,7 +176,7 @@ def DSS(state):
         with col6:
             st.write(round(filtered_df['Relative Humidity (%)'].mean(),2))
 
-        if choice == 'Actual data':
+        if choice == 'Actual Data':
             ########### climograph ##############
             avg_df = df1.groupby('date',as_index=False).mean()
             for row in range(len(avg_df)):
@@ -288,12 +292,174 @@ def DSS(state):
         
         
         elif choice == 'Predictions':
-            st.write('hi')
+            ##### using resampled data from July
+            resampled_df = pd.read_excel('resampled DHS.xlsx')            
+            df2 = resampled_df.set_index('timestamp')
+
+            pred1, pred2 = st.columns(2)
+            with pred1:
+                ###################  temp predictions  ################
+                temp_data = df2[['Temperature (℃)']]
+
+                with open('XGBoost_Temp_DHS.pkl','rb') as f:
+                    temp_model = pickle.load(f)
+                
+                n_periods = 500
+                for i in range(n_periods):
+                    
+                    # construct an input for a new preduction
+                    row = temp_data[-26:].values.flatten()
+                    # make a one-step prediction
+                    yhat = temp_model.predict(asarray([row]))
+                    temp_df = temp_data.tail(1)
+                    temp_df['time'] = temp_df.index
+                    temp_df = temp_df.reset_index()
+                    next_time = temp_df.loc[0,'time'] + datetime.timedelta(hours = 1)
+
+                    extrapolated_value = pd.DataFrame([yhat],[next_time])
+                    extrapolated_value.columns = ['Temperature (℃)']
+                    temp_data = pd.concat([temp_data,extrapolated_value])
+
+                actual_temp = df2[['Temperature (℃)']]
+                temp_forecast = pd.concat([actual_temp,temp_data]).drop_duplicates(keep=False)
+                
+                temp_fig = go.Figure()
+
+                temp_fig.add_trace(go.Scatter(
+                    x=temp_forecast.index,
+                    y=temp_forecast['Temperature (℃)'],
+                    name = '<b>Forecast</b>', # Style name/legend entry with html tags
+                ))
+                temp_fig.add_trace(go.Scatter(
+                    x=actual_temp.index,
+                    y=actual_temp['Temperature (℃)'],
+                    name='Actual',
+                ))
+
+                temp_fig.update_layout(title='Actual vs Predicted Temperature (℃)',title_x = 0.5)
+
+                st.plotly_chart(temp_fig)
 
 
+            with pred2:
+                ###################  humidity predictions  ################
+                hum_data = df2[['Relative Humidity (%)']]
 
-   
-    else:
+                with open('XGBoost_Hum_DHS.pkl','rb') as f:
+                    hum_model = pickle.load(f)
+
+                n_periods = 500
+
+                for i in range(n_periods):
+                    
+                    # construct an input for a new preduction
+                    row = hum_data[-31:].values.flatten()
+                    # make a one-step prediction
+                    yhat = hum_model.predict(asarray([row]))
+                    temp_df = hum_data.tail(1)
+                    temp_df['time'] = temp_df.index
+                    temp_df = temp_df.reset_index()
+                    next_time = temp_df.loc[0,'time'] + datetime.timedelta(hours = 1)
+                    
+
+                    extrapolated_value = pd.DataFrame([yhat],[next_time])
+                    extrapolated_value.columns = ['Relative Humidity (%)']
+                    hum_data = pd.concat([hum_data,extrapolated_value])
+
+                actual_hum = df2[['Relative Humidity (%)']]
+                hum_forecast = pd.concat([actual_hum,hum_data]).drop_duplicates(keep=False)
+                
+                hum_fig = go.Figure()
+
+                hum_fig.add_trace(go.Scatter(
+                    x=hum_forecast.index,
+                    y=hum_forecast['Relative Humidity (%)'],
+                    name = '<b>Forecast</b>', # Style name/legend entry with html tags
+                ))
+                hum_fig.add_trace(go.Scatter(
+                    x=actual_hum.index,
+                    y=actual_hum['Relative Humidity (%)'],
+                    name='Actual',
+                ))
+
+                hum_fig.update_layout(title='Actual vs Predicted Relative Humidity (%)',title_x = 0.5)
+                st.plotly_chart(hum_fig)
+
+            ###################  rainfall predictions  ################
+            new_rainfall_column = resampled_df[['timestamp', 'Rainfall (cm)']] 
+            new_rainfall_column.dropna(inplace=True)
+            new_rainfall_column.reset_index(inplace = True)
+            new_rainfall_column.drop('index',axis=1,inplace=True)
+            new_rainfall_column.columns = ['ds', 'y'] 
+
+            with open('Prophet_Rainfall_DHS.pkl','rb') as f:
+                rainfall_model = pickle.load(f)
+            
+            future= rainfall_model.make_future_dataframe(periods=500,freq='H')
+            rainfall_forecast=rainfall_model.predict(new_rainfall_column)
+
+            rainfall_fig = go.Figure()
+
+            rainfall_fig.add_trace(go.Histogram(
+                x=rainfall_forecast.ds,
+                y=rainfall_forecast.yhat,
+                name = '<b>Forecast</b>', # Style name/legend entry with html tags
+            ))
+            rainfall_fig.add_trace(go.Histogram(
+                x=new_rainfall_column.ds,
+                y=new_rainfall_column.y,
+                name='Actual',
+            ))
+            rainfall_fig.update_layout(title='Actual vs Predicted Rainfall(cm)',title_x = 0.5)
+
+            st.plotly_chart(rainfall_fig)
+            
+
+            #choose date and predict
+            state.pred_date_slider = st.date_input("Select date to predict",max(resampled_df['Date']),min_value=max(resampled_df['Date']))
+            p_date_df = pd.DataFrame({'ds':[state.pred_date_slider]})
+            
+            date = state.pred_date_slider
+            ###temp:
+            last_date = actual_temp.tail(1)
+            last_date['time'] = last_date.index
+            last_date = last_date.reset_index()
+            last_date = last_date.loc[0,'time']
+            periods = date - last_date.date()
+            n_periods = periods.days * 24 + periods.seconds/3600
+
+            date_pred_temp = actual_temp
+            for i in range(n_periods):
+                
+                # construct an input for a new preduction
+                row = date_pred_temp[-26:].values.flatten()
+                # make a one-step prediction
+                yhat = temp_model.predict(asarray([row]))
+                temp_df = date_pred_temp.tail(1)
+                temp_df['time'] = temp_df.index
+                temp_df = temp_df.reset_index()
+                next_time = temp_df.loc[0,'time'] + datetime.timedelta(hours = 1)
+                extrapolated_value = pd.DataFrame([yhat],[next_time])
+                extrapolated_value.columns = ['Temperature (℃)']
+                date_pred_temp = pd.concat([date_pred_temp,extrapolated_value])
+
+            st.write(date_pred_temp.tail(1))
+            predicted = date_pred_temp.tail(1).reset_index()
+            pred_temp = round(predicted.loc[0,'Temperature (℃)'],2)
+
+            predicted=rainfall_model.predict(p_date_df)
+            pred_rainfall = round(predicted.yhat[0],2)
+
+
+            st.write('Weather Forecast for '+str(state.pred_date_slider)+' :')
+            st.write('Temperature: '+str(pred_temp)+' °C')
+            # st.write('Humidity: '+str(pred_hum)+' %')
+            st.write('Rainfall: '+str(pred_rainfall)+' cm')
+
+            st.write('\n[Note: Prediction is only based on data available for 2021]')
+
+
+    else:       
         with col4:
             st.write('NA')
         with col5:
