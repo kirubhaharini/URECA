@@ -10,6 +10,8 @@ import math
 from st_btn_select import st_btn_select
 import pickle
 from numpy import asarray
+import pmdarima as pm
+
 
 
 '''
@@ -386,33 +388,57 @@ def DSS(state):
                 st.plotly_chart(hum_fig)
 
             ###################  rainfall predictions  ################
-            new_rainfall_column = resampled_df[['timestamp', 'Rainfall (cm)']] 
-            new_rainfall_column.dropna(inplace=True)
-            new_rainfall_column.reset_index(inplace = True)
-            new_rainfall_column.drop('index',axis=1,inplace=True)
-            new_rainfall_column.columns = ['ds', 'y'] 
+            df2_reset = df2.reset_index()
+            new_rainfall_df = df2_reset[['timestamp', 'Rainfall (cm)']] 
+            new_rainfall_df.set_index('timestamp',inplace=True)
+            # Create Training and Test - 80:20
+            train = new_rainfall_df['Rainfall (cm)'][:180]
+            test = new_rainfall_df['Rainfall (cm)'][180:] 
 
-            with open('Prophet_Rainfall_DHS.pkl','rb') as f:
-                rainfall_model = pickle.load(f)
+            # #load model
+            # with open('ARIMA_Rainfall_DHS.pkl','rb') as f:
+            #     rainfall_model = joblib.load('test arima.pkl')#pickle.load(f)
             
-            future= rainfall_model.make_future_dataframe(periods=500,freq='H')
-            rainfall_forecast=rainfall_model.predict(new_rainfall_column)
+            #autoarima
+            rainfall_model = pm.auto_arima(train, start_p=1, start_q=1,
+                    test='adf',       # use adftest to find optimal 'd'
+                    max_p=3, max_q=3, # maximum p and q
+                    m=1,              # frequency of series
+                    d=None,           # let model determine 'd'
+                    seasonal=False,   # No Seasonality
+                    start_P=0, 
+                    D=0, 
+                    trace=True,
+                    error_action='ignore',  
+                    suppress_warnings=True, 
+                    stepwise=True)
 
-            rainfall_fig = go.Figure()
 
-            rainfall_fig.add_trace(go.Histogram(
-                x=rainfall_forecast.ds,
-                y=rainfall_forecast.yhat,
+            n_periods = 500
+            date_to_forecast_from = (train.index[-1] + datetime.timedelta(days=1)).date()
+            m  = pd.date_range(date_to_forecast_from,periods=n_periods,freq='H')
+
+            fc = rainfall_model.predict(n_periods=n_periods)
+            index_of_fc = m
+            # make series for plotting purpose
+            fc_series = pd.Series(fc, index=index_of_fc)
+
+            rainfall_pred = go.Figure()
+
+            rainfall_pred.add_trace(go.Histogram(
+                x=fc_series.index,
+                y=fc_series,
                 name = '<b>Forecast</b>', # Style name/legend entry with html tags
             ))
-            rainfall_fig.add_trace(go.Histogram(
-                x=new_rainfall_column.ds,
-                y=new_rainfall_column.y,
+            rainfall_pred.add_trace(go.Histogram(
+                x=new_rainfall_df.index,
+                y=new_rainfall_df['Rainfall (cm)'],
                 name='Actual',
             ))
-            rainfall_fig.update_layout(title='Actual vs Predicted Rainfall(cm)',title_x = 0.5)
 
-            st.plotly_chart(rainfall_fig)
+            rainfall_pred.update_layout(title='Actual vs Predicted Rainfall (cm)',title_x = 0.5)
+
+            st.plotly_chart(rainfall_pred)
             
 
             #choose date and predict
@@ -426,8 +452,7 @@ def DSS(state):
             last_date = last_date.reset_index()
             last_date = last_date.loc[0,'time']
             periods = date - last_date.date()
-            n_periods = periods.days * 24 + periods.seconds/3600
-
+            n_periods = periods.days * 24 
             date_pred_temp = actual_temp
             for i in range(n_periods):
                 
@@ -443,17 +468,44 @@ def DSS(state):
                 extrapolated_value.columns = ['Temperature (℃)']
                 date_pred_temp = pd.concat([date_pred_temp,extrapolated_value])
 
-            st.write(date_pred_temp.tail(1))
             predicted = date_pred_temp.tail(1).reset_index()
             pred_temp = round(predicted.loc[0,'Temperature (℃)'],2)
 
-            predicted=rainfall_model.predict(p_date_df)
-            pred_rainfall = round(predicted.yhat[0],2)
+            ###hum:
+            last_date = actual_hum.tail(1)
+            last_date['time'] = last_date.index
+            last_date = last_date.reset_index()
+            last_date = last_date.loc[0,'time']
+            periods = date - last_date.date()
+            n_periods = periods.days * 24 
+            date_pred_hum = actual_hum
+            for i in range(n_periods):
+                
+                # construct an input for a new preduction
+                row = date_pred_hum[-26:].values.flatten()
+                # make a one-step prediction
+                yhat = temp_model.predict(asarray([row]))
+                temp_df = date_pred_hum.tail(1)
+                temp_df['time'] = temp_df.index
+                temp_df = temp_df.reset_index()
+                next_time = temp_df.loc[0,'time'] + datetime.timedelta(hours = 1)
+                extrapolated_value = pd.DataFrame([yhat],[next_time])
+                extrapolated_value.columns = ['Relative Humidity (%)']
+                date_pred_hum = pd.concat([date_pred_hum,extrapolated_value])
+
+            predicted = date_pred_hum.tail(1).reset_index()
+            pred_hum = round(predicted.loc[0,'Relative Humidity (%)'],2)
+
+            ###rainfall:
+            n = (state.pred_date_slider - train.index[-1].date()).days
+            fc = rainfall_model.predict(n_periods=n)
+            predicted=fc[-1]
+            pred_rainfall = round(predicted,2)
 
 
             st.write('Weather Forecast for '+str(state.pred_date_slider)+' :')
             st.write('Temperature: '+str(pred_temp)+' °C')
-            # st.write('Humidity: '+str(pred_hum)+' %')
+            st.write('Humidity: '+str(pred_hum)+' %')
             st.write('Rainfall: '+str(pred_rainfall)+' cm')
 
             st.write('\n[Note: Prediction is only based on data available for 2021]')
