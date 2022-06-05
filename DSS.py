@@ -13,7 +13,7 @@ from numpy import asarray
 import pmdarima as pm
 import xgboost
 from xgboost import XGBRegressor
-
+import statsmodels
 
 
 '''
@@ -444,7 +444,7 @@ def DSS(state):
             
 
             #choose date and predict
-            state.pred_date_slider = st.date_input("Select date to predict",max(resampled_df['Date']),min_value=max(resampled_df['Date']))
+            state.pred_date_slider = st.date_input("Select date to predict",max(resampled_df['Date'])+datetime.timedelta(days = 1),min_value=max(resampled_df['Date']))
             p_date_df = pd.DataFrame({'ds':[state.pred_date_slider]})
             
             date = state.pred_date_slider
