@@ -151,8 +151,8 @@ def SGS(state):
                                 filtered_df = filtered_df.append(df.iloc[row,:])
   
 
-    
-    placeholder2.dataframe(filtered_df)
+
+    placeholder2.dataframe(filtered_df.astype(str))
 
     
     if len(filtered_df)!=0:
@@ -297,7 +297,7 @@ def SGS(state):
                     hum_data = pd.concat([hum_data,extrapolated_value])
 
                 actual_hum = df2[['Relative Humidity (%)']]
-                hum_forecast = pd.concat([actual_hum,hum_data]).drop_duplicates(keep=False)
+                hum_forecast = hum_data[len(actual_hum):]
                 
                 hum_fig = go.Figure()
 
@@ -385,7 +385,7 @@ def SGS(state):
             for i in range(n_periods):
                 
                 # construct an input for a new preduction
-                row = date_pred_temp[-26:].values.flatten()
+                row = date_pred_temp[-2:].values.flatten()
                 # make a one-step prediction
                 yhat = temp_model.predict(asarray([row]))
                 temp_df = date_pred_temp.tail(1)
@@ -410,7 +410,7 @@ def SGS(state):
             for i in range(n_periods):
                 
                 # construct an input for a new preduction
-                row = date_pred_hum[-26:].values.flatten()
+                row = date_pred_hum[-2:].values.flatten()
                 # make a one-step prediction
                 yhat = temp_model.predict(asarray([row]))
                 temp_df = date_pred_hum.tail(1)

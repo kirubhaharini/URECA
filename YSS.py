@@ -1,5 +1,22 @@
-import pandas as pd
 import streamlit as st
+import pandas as pd
+import datetime
+import plotly.express as px
+from windrose import WindroseAxes
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+import math
+from st_btn_select import st_btn_select
+from fbprophet import Prophet
+from fbprophet.plot import plot_plotly
+import numpy as np
+import matplotlib.pyplot as plt
+import pickle
+import pmdarima as pm
+from numpy import asarray
+import xgboost
+from xgboost import XGBRegressor
+import statsmodels
 
 '''
 Dashboard for Yishun Secondary School
