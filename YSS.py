@@ -110,10 +110,10 @@ def YSS(state):
     max_co2 = max(df['CO2 (ppm)'])
     state.co2 = st.sidebar.slider('CO2 (ppm)',max_co2,min_co2,(min_co2,max_co2),step=0.1)
 
-     #rainfall
-    min_rainfall = min(df['Rainfall (mm)'])
-    max_rainfall = max(df['Rainfall (mm)'])
-    state.rainfall = st.sidebar.slider('Rainfall (mm)',max_rainfall,min_rainfall,(min_rainfall,max_rainfall),step=0.1)
+    #  #rainfall
+    # min_rainfall = min(df['Rainfall (mm)'])
+    # max_rainfall = max(df['Rainfall (mm)'])
+    # state.rainfall = st.sidebar.slider('Rainfall (mm)',max_rainfall,min_rainfall,(min_rainfall,max_rainfall),step=0.1)
 
 
     #apply filter
