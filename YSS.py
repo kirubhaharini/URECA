@@ -20,7 +20,7 @@ import statsmodels
 
 '''
 Dashboard for Yishun Secondary School
-Data from ???
+Data from 2021
 '''
 
 def YSS(state):
