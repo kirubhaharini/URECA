@@ -24,7 +24,7 @@ Data from ???
 '''
 
 def YSS(state):
-    df = pd.read_excel('YSS after outlier removal.xlsx')
+    df = pd.read_excel('FINAL_PROCESSED_YSS.xlsx')
 
     
 #####################################################################
@@ -56,24 +56,17 @@ def YSS(state):
         choice = st_btn_select(('Actual Data', 'Predictions'))#,  nav=True)
 
 
+    climo_col,temp_col = st.columns(2)
+    light_col,co2_col = st.columns(2)
+    noise_col, dust_col = st.columns(2) 
+    
     #for climograph
-    a, climo_col, b = st.columns([3,6,3])
-
     with climo_col:
         placeholder = st.empty()
-    with a,b:
-        st.write(' ')  #just for formatting
 
-
-    temp_col,wind_col = st.columns(2)
-    co2_col,light_col = st.columns(2)
     #for temp graph
     with temp_col:
         placeholder1 = st.empty() #for graph - hourly temp
-
-    #windrose
-    with wind_col:
-        placeholder_windrose = st.empty()
     
     #co2
     with co2_col:
@@ -82,6 +75,14 @@ def YSS(state):
     #light
     with light_col:
         placeholder_light = st.empty()
+
+    #noise
+    with noise_col:
+        placeholder_noise = st.empty()
+    
+    #dust
+    with dust_col:
+        placeholder_dust = st.empty()
 
     #date
     state.date_slider = st.sidebar.date_input("Date(s)",[min(df['Date']),max(df['Date'])],min_value=min(df['Date']),max_value=max(df['Date']))
@@ -106,15 +107,19 @@ def YSS(state):
     state.light = st.sidebar.slider('Visible Light (lm)',max_light,min_light,(min_light,max_light),step=0.1)
 
      #co2
-    min_co2 = min(df['CO2 (ppm)'])
-    max_co2 = max(df['CO2 (ppm)'])
+    min_co2 = min(df['CO2 (ppm)'].dropna())
+    max_co2 = max(df['CO2 (ppm)'].dropna())
     state.co2 = st.sidebar.slider('CO2 (ppm)',max_co2,min_co2,(min_co2,max_co2),step=0.1)
 
-    #  #rainfall
-    # min_rainfall = min(df['Rainfall (mm)'])
-    # max_rainfall = max(df['Rainfall (mm)'])
-    # state.rainfall = st.sidebar.slider('Rainfall (mm)',max_rainfall,min_rainfall,(min_rainfall,max_rainfall),step=0.1)
+     #noise
+    min_noise = min(df['Noise (0-1023)'].dropna())
+    max_noise = max(df['Noise (0-1023)'].dropna())
+    state.noise = st.sidebar.slider('Noise (0-1023)',max_noise,min_noise,(min_noise,max_noise),step=1.0)
 
+    #dust
+    min_dust = min(df['Dust (µg/m3)'])
+    max_dust = max(df['Dust (µg/m3)'])
+    state.dust = st.sidebar.slider('Dust (µg/m3)',max_dust,min_dust,(min_dust,max_dust),step=1)
 
     #apply filter
 
@@ -149,10 +154,13 @@ def YSS(state):
         min_co2 = state.co2[0]
         max_co2 = state.co2[1]
 
-    if state.rainfall:
-        min_rainfall = state.rainfall[0]
-        max_rainfall = state.rainfall[1]
+    if state.noise:
+        min_noise = state.noise[0]
+        max_noise = state.noise[1]
 
+    if state.dust:
+        min_dust = state.dust[0]
+        max_dust = state.dust[1]
 
 
     filtered_df = pd.DataFrame()
@@ -163,8 +171,9 @@ def YSS(state):
                     if min_hum<=df.loc[row,'Humidity (%)']<=max_hum:#humidity
                         if min_light<=df.loc[row,'Visible Light (lm)']<=max_light:#light
                             if min_co2<=df.loc[row,'CO2 (ppm)']<=max_co2:#co2
-                                if min_rainfall<=df.loc[row,'Rainfall (mm)']<=max_rainfall:#rainfall
-                                    filtered_df = filtered_df.append(df.iloc[row,:])
+                                if min_noise<=df.loc[row,'Noise (0-1023)']<=max_noise:#noise
+                                    if min_dust<=df.loc[row,'Dust (µg/m3)']<=max_dust:#dust
+                                        filtered_df = filtered_df.append(df.iloc[row,:])
   
 
     
@@ -174,7 +183,7 @@ def YSS(state):
     if len(filtered_df)!=0:
         ##NOTE: MIGHT HAVE ERRORS if eg rainfall in filtered df is '-' or NaN etc
         with col4: 
-            st.write(round(filtered_df['Rainfall (mm)'].mean(),2))
+            st.write(round(filtered_df['CO2 (ppm)'].mean(),2))
         with col5:
             st.write(round(filtered_df['Temperature (°C)'].mean(),2))
         with col6:
@@ -198,43 +207,20 @@ def YSS(state):
                 avg_df.loc[row,'Month'] = avg_df.loc[row,'Date'].strftime('%B')
             
             climograph = make_subplots(specs=[[{"secondary_y": True}]])#this a one cell subplot
-            climograph.update_layout(title="Climograph",
+            climograph.update_layout(title="Temperature Data (°C)",
                             template="plotly_white",title_x=0.5,legend=dict(orientation='h'))
 
-            trace1 = go.Bar(x=avg_df['Date'], y=avg_df['Rainfall (mm)'], opacity=0.5,name='Rainfall (mm)',marker_color ='#1f77b4')
+            trace1 = go.Scatter(x=avg_df['Date'], y=avg_df['Temperature (°C)'],name='Temperature ((°C))',mode='lines+markers',line=dict(color='#e377c2', width=2))
 
-            trace2p = go.Scatter(x=avg_df['Date'], y=avg_df['Temperature (°C)'],name='Temperature ((°C))',mode='lines+markers',line=dict(color='#e377c2', width=2))
+            climograph.add_trace(trace1, secondary_y=True)
 
-            #The first trace is referenced to the default xaxis, yaxis (ie. xaxis='x1', yaxis='y1')
-            climograph.add_trace(trace1, secondary_y=False)
-
-            #The second trace is referenced to xaxis='x1'(i.e. 'x1' is common for the two traces) 
-            #and yaxis='y2' (the right side yaxis)
-
-            climograph.add_trace(trace2p, secondary_y=True)
-
-            climograph.update_yaxes(#left yaxis
-                            title= 'mm',showgrid= False, secondary_y=False)
+            # climograph.update_yaxes(#left yaxis
+            #                 title= 'mm',showgrid= False, secondary_y=False)
             climograph.update_yaxes(#right yaxis
                             showgrid= True, 
                             title= '°C',
                             secondary_y=True)
             placeholder.plotly_chart(climograph)
-
-            ####################### windrose #######################
-            wind_df = filtered_df[filtered_df['direction of wind']!='NA']
-            freq = wind_df[['direction of wind','Wind Speed (m/s)']].value_counts()
-            freq = freq.reset_index() 
-            freq = freq.rename({0: "frequency"},axis=1)
-            
-            windrose = px.bar_polar(freq, r='frequency', 
-                                theta="direction of wind",
-                                color="Wind Speed (m/s)",
-                            color_discrete_sequence= px.colors.sequential.Plasma_r)
-            windrose.update_layout(title="Windrose",
-                            template="plotly_white",title_x=0.45,legend=dict(orientation='h'))
-
-            placeholder_windrose.plotly_chart(windrose)
 
 
             ####################### co2 levels #######################        
@@ -242,71 +228,279 @@ def YSS(state):
             co2.update_layout(title_x=0.5)
             placeholder_co2.plotly_chart(co2)
 
-            ####################### visible light and UV #######################
-            sites = filtered_df['Device ID'].unique()
-            temp_df = filtered_df.groupby(['hour','Device ID'],as_index=False).mean()
+            ####################### visible light and IR #######################
+            
+
+            light_df = avg_df[['Date','Visible Light (lm)']]
+            light_df['Visible Light (lm)'] = light_df['Visible Light (lm)'].fillna(light_df['Visible Light (lm)'].mean())
+            IR_df = avg_df[['Date','IR (lm)']]
+            IR_df['IR (lm)'] = IR_df['IR (lm)'].fillna(IR_df['IR (lm)'].mean())
+            light_df['category'] = 'Visible Light (lm)'
+            IR_df['category'] = 'IR (lm)'
+            final_df = pd.concat([light_df,IR_df],ignore_index=True)
+            final_df['Light (lm)'] = final_df['Visible Light (lm)'].fillna(final_df['IR (lm)'])
+            light_fig = px.area(final_df, x="Date", y="Light (lm)", color="category",title = 'Visible Light and IR Levels')
+            placeholder_light.plotly_chart(light_fig)
+
+
+            ####################### noise #######################
+            sites = df['Device ID'].unique()
+            df2 = df.groupby(['hour','Device ID'],as_index=False).mean()
             bubble_size = []
             hover_text = []
 
-            for index, row in temp_df.iterrows():
-                hover_text.append(( #'Date: {date}<br>'+
-                                'Visible Light: {light}<br>'+
-                                'UV Index: {UV}<br>').format(#date=row['Date'],
-                                                        light=row['Visible Light (lm)'],
-                                                        UV=row['UV (UV Index)'] ))
-            #     print(row)
-                if row['Visible Light (lm)']>0:
-                    bubble_size.append(math.sqrt(row['Visible Light (lm)']))
+            for index, row in df2.iterrows():
+                hover_text.append(( 'Noise Level: {noise}<br>'
+                                ).format(noise=row['Noise (0-1023)']
+                                                        ))
+                if row['Noise (0-1023)']>0:
+                    bubble_size.append(int(math.sqrt(row['Noise (0-1023)'])))
                 else:
                     bubble_size.append(0)
 
-            temp_df['text'] = hover_text
-            temp_df['size'] = bubble_size
-            sizeref = 2.*max(temp_df['size'])/(100**2)
-
-
+            df2['text'] = hover_text
+            
             # Create figure
-            fig = go.Figure()
+            noise_fig = go.Figure()
 
             for device in sites:
-                new_df = temp_df[temp_df['Device ID']==device]
-                # avg_df = new_df.groupby(['hour','Device ID'],as_index=False).mean()
-                fig.add_trace(go.Scatter(
-                    x=new_df['hour'], y=new_df['Visible Light (lm)'],
-                    name=device,text=new_df['text'],
-                    marker_size=new_df['size'],
+                new_df = df2[df2['Device ID']==device]
+                avg_df = new_df.groupby(['hour','Device ID'],as_index=False).mean()
+                noise_fig.add_trace(go.Scatter(
+                    x=new_df['hour'], y=new_df['Noise (0-1023)'],
+                    name=device,text=(new_df['text']),
                     ))
 
             # Tune marker appearance and layout
-            fig.update_traces(mode='markers', marker=dict(sizemode='area',
-                                                        sizeref=sizeref, line_width=2))
+            noise_fig.update_traces(mode='markers', marker=dict(sizemode='area',line_width=2))
 
-            fig.update_layout(title="Average Visible Light level by Hour of Day",
+            noise_fig.update_layout(title="Average Noise (0-1023) by Hour of Day",
                             template="plotly_white",title_x=0.5)
-            fig.update_layout(
+            noise_fig.update_layout(
                 xaxis=dict(
                     title='Hour of day',
-            #         gridcolor='white',
                     gridwidth=2,
                 ),
                 yaxis=dict(
-                    title='Visible Light (lm)',
-            #         gridcolor='white',
+                    title='Noise Level',
                     gridwidth=2,
                 ),
-            #     paper_bgcolor='rgb(243, 243, 243)',
-            #     plot_bgcolor='rgb(243, 243, 243)',
             )
-            placeholder_light.plotly_chart(fig)
-            ################################################################
 
-            ####################### calmap #######################
-            # import calmap
-            # temp = df.copy().set_index(pd.DatetimeIndex(df['Date']))
-            # #temp.set_index('date', inplace=True)
-            # # fig, ax = calmap.calendarplot(temp['Rainfall (mm)'], fig_kws={"figsize":(15,4)})
-            # # plt.title("Hours raining")
-            # fig, ax = calmap.calendarplot(temp['Rainfall (mm)'],how=u'sum', fig_kws={"figsize":(15,4)})
-            # st.image(fig)
-            # plt.title("Total Rainfall Daily")
-            ###################################################################
+            placeholder_noise.plotly_chart(noise_fig)
+
+            ####################### dust #######################
+            bubble_size = []
+            hover_text = []
+
+            for index, row in df2.iterrows():
+                hover_text.append(( 'Dust Level: {dust}<br>'#+
+                                #'Noise Level: {noise}<br>'
+                                ).format(dust=row['Dust (µg/m3)']#,noise = row['Noise (0-1023)']
+                                                        ))
+            #     print(row)
+                if row['Dust (µg/m3)']>0:
+                    bubble_size.append(int(math.sqrt(row['Dust (µg/m3)'])))
+                else:
+                    bubble_size.append(0)
+
+            df2['text'] = hover_text
+
+
+            # Create figure
+            dust_fig = go.Figure()
+
+            for device in sites:
+                new_df = df2[df2['Device ID']==device]
+                avg_df = new_df.groupby(['hour','Device ID'],as_index=False).mean()
+                dust_fig.add_trace(go.Scatter(
+                    x=new_df['hour'], y=new_df['Dust (µg/m3)'],
+                    name=device,text=(new_df['text']),
+                    ))
+
+            # Tune marker appearance and layout
+            dust_fig.update_traces(mode='markers', marker=dict(sizemode='area', line_width=2))
+
+            dust_fig.update_layout(title="Average Dust (µg/m3) by Hour of Day",
+                            template="plotly_white",title_x=0.5)
+            dust_fig.update_layout(
+                xaxis=dict(
+                    title='Hour of day',
+                    gridwidth=2,
+                ),
+                yaxis=dict(
+                    title='Dust',
+                    gridwidth=2,
+                ),
+            )
+
+            placeholder_dust.plotly_chart(dust_fig)
+
+
+        elif choice == 'Predictions':
+                    ##### using resampled data from July
+                    resampled_df = pd.read_excel('resampled YSS.xlsx')            
+                    df2 = resampled_df.set_index('Time')
+
+                    pred1, pred2 = st.columns(2)
+                    with pred1:
+                        ###################  temp predictions  ################
+                        new_temp_column = resampled_df[['Time', 'Temperature (°C)']]  #df1
+                        new_temp_column.dropna(inplace=True)
+                        new_temp_column.reset_index(inplace = True)
+                        new_temp_column.drop('index',axis=1,inplace=True)
+                        new_temp_column.columns = ['ds', 'y'] 
+                       
+                        #load model
+                        with open('Prophet_Temp_YSS.pkl','rb') as f:
+                            temp_model = pickle.load(f)
+
+                        temp_future = temp_model.make_future_dataframe(periods=500,freq='H')
+                        temp_forecast=temp_model.predict(temp_future)
+
+                        temp_pred = go.Figure()
+                        temp_pred.add_trace(go.Scatter(
+                            x=temp_forecast.ds,
+                            y=temp_forecast.yhat,
+                            name = '<b>Forecast</b>', # Style name/legend entry with html tags
+                        ))
+                        temp_pred.add_trace(go.Scatter(
+                            x=new_temp_column.ds,
+                            y=new_temp_column.y,
+                            name='Actual',
+                        ))
+                        temp_pred.update_layout(title='Actual vs Predicted Temperature (°C)',title_x = 0.5)
+                        
+                        st.plotly_chart(temp_pred)
+                        
+
+                    with pred2:
+                        ###################  humidity predictions  ################
+                        new_hum_column = resampled_df[['Time', 'Humidity (%)']]  
+                        new_hum_column.dropna(inplace=True)
+                        new_hum_column.reset_index(inplace = True)
+                        new_hum_column.drop('index',axis=1,inplace=True)
+                        new_hum_column.columns = ['ds', 'y'] 
+                       
+                        #load model
+                        with open('Prophet_Hum_YSS.pkl','rb') as f:
+                            hum_model = pickle.load(f)
+
+                        hum_future= hum_model.make_future_dataframe(periods=500,freq='H')
+                        hum_forecast=hum_model.predict(hum_future)
+                        hum_pred = go.Figure()
+                        hum_pred.add_trace(go.Scatter(
+                            x=hum_forecast.ds,
+                            y=hum_forecast.yhat,
+                            name = '<b>Forecast</b>', 
+                        ))
+                        hum_pred.add_trace(go.Scatter(
+                            x=new_hum_column.ds,
+                            y=new_hum_column.y,
+                            name='Actual'
+                        ))
+                        hum_pred.update_layout(title='Actual vs Predicted Humidity (%)',title_x = 0.5)
+                        
+                        st.plotly_chart(hum_pred)
+
+
+                    ###################  noise predictions  ################
+                    noise_data = resampled_df[['Noise (0-1023)','Time']]
+                    date_time_obj = datetime.datetime.strptime('2021-05-07', '%Y-%m-%d').date()  #cuz a lot of gaps after this date
+                    noise_data = noise_data[noise_data.Time.dt.date <= date_time_obj]
+                    noise_data = noise_data.set_index('Time')
+                    noise_data = noise_data.fillna(noise_data.mean())
+                    actual_noise = noise_data
+
+                    with open('XGBoost_Noise_YSS.pkl','rb') as f:
+                        noise_model = pickle.load(f)
+
+                    n_periods = 500
+
+                    for i in range(n_periods):
+                        
+                        # construct an input for a new preduction
+                        row = noise_data[-2:].values.flatten()
+                        # make a one-step prediction
+                        yhat = noise_model.predict(asarray([row]))
+                        temp_df = noise_data.tail(1)
+                        temp_df['time'] = temp_df.index
+                        temp_df = temp_df.reset_index()
+                        next_time = temp_df.loc[0,'time'] + datetime.timedelta(hours = 1)
+
+                        extrapolated_value = pd.DataFrame([yhat],[next_time])
+                        extrapolated_value.columns = ['Noise (0-1023)']
+                        noise_data = pd.concat([noise_data,extrapolated_value])
+                    
+                    noise_forecast = noise_data[len(actual_noise):]
+                    
+                    noise_fig = go.Figure()
+
+                    noise_fig.add_trace(go.Scatter(
+                        x=noise_forecast.index,
+                        y=noise_forecast['Noise (0-1023)'],
+                        name = '<b>Forecast</b>', # Style name/legend entry with html tags
+                    ))
+                    noise_fig.add_trace(go.Scatter(
+                        x=actual_noise.index,
+                        y=actual_noise['Noise (0-1023)'],
+                        name='Actual',
+                    ))
+
+                    noise_fig.update_layout(title='Actual vs Predicted Noise (0-1023)',title_x = 0.5)
+                    st.plotly_chart(noise_fig)
+                    
+
+                    #choose date and predict
+                    state.pred_date_slider = st.date_input("Select date to predict",max(resampled_df['Date'])+datetime.timedelta(days = 1),min_value=max(resampled_df['Date']))
+                    p_date_df = pd.DataFrame({'ds':[state.pred_date_slider]})
+                    
+                    date = state.pred_date_slider
+                    ###noise:
+                    last_date = actual_noise.tail(1)
+                    last_date['time'] = last_date.index
+                    last_date = last_date.reset_index()
+                    last_date = last_date.loc[0,'time']
+                    periods = date - last_date.date()
+                    n_periods = periods.days * 24 
+                    date_pred_noise = actual_noise
+                    for i in range(n_periods):
+                        
+                        # construct an input for a new preduction
+                        row = date_pred_noise[-2:].values.flatten()
+                        # make a one-step prediction
+                        yhat = noise_model.predict(asarray([row]))
+                        temp_df = date_pred_noise.tail(1)
+                        temp_df['time'] = temp_df.index
+                        temp_df = temp_df.reset_index()
+                        next_time = temp_df.loc[0,'time'] + datetime.timedelta(hours = 1)
+                        extrapolated_value = pd.DataFrame([yhat],[next_time])
+                        extrapolated_value.columns = ['Noise (0-1023)']
+                        date_pred_noise = pd.concat([date_pred_noise,extrapolated_value])
+
+                    predicted = date_pred_noise.tail(1).reset_index()
+                    pred_noise = round(predicted.loc[0,'Noise (0-1023)'],0)
+
+                    ###temp:
+                    predicted=temp_model.predict(p_date_df)
+                    pred_temp = round(predicted.yhat[0],2)
+
+                    ###hum:
+                    predicted=hum_model.predict(p_date_df)
+                    pred_hum = round(predicted.yhat[0],2)
+
+                    st.write('Weather Forecast for '+str(state.pred_date_slider)+' :')
+                    st.write('Temperature: '+str(pred_temp)+' °C')
+                    st.write('Humidity: '+str(pred_hum)+' %')
+                    st.write('Noise Level: '+str(pred_noise))
+
+                    st.write('\n[Note: Prediction is only based on data available for 2021]')
+                    
+
+    else:       
+        with col4:
+            st.write('NA')
+        with col5:
+            st.write('NA')
+        with col6:
+            st.write('NA')
