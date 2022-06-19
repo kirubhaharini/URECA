@@ -494,7 +494,7 @@ def YSS(state):
                     st.write('Humidity: '+str(pred_hum)+' %')
                     st.write('Noise Level: '+str(pred_noise))
 
-                    st.write('\n[Note: Prediction is only based on data available for 2021]')
+                    st.write('\n[Note: Prediction is only based on data from March to May 2021]')
                     
 
     else:       

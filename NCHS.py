@@ -457,7 +457,7 @@ def NCHS(state):
             st.write('Humidity: '+str(pred_hum)+' %')
             st.write('Rainfall: '+str(pred_rainfall)+' mm')
 
-            st.write('\n[Note: Prediction is only based on July data]')
+            st.write('\n[Note: Prediction is only based on July 2021 data]')
             
     else:
         with col4:

@@ -436,7 +436,7 @@ def SGS(state):
             st.write('Humidity: '+str(pred_hum)+' %')
             st.write('Rainfall: '+str(pred_rainfall)+' cm')
 
-            st.write('\n[Note: Prediction is only based on data available for 2021]')
+            st.write('\n[Note: Prediction is only based on April 2022 data]')
             
 
     else:       
